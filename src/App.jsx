@@ -96,9 +96,12 @@ export default function App() {
     if (event.target !== event.currentTarget) return;
     const rect = event.currentTarget.getBoundingClientRect();
     if (
-      event.clientX < rect.left || event.clientX > rect.right ||
-      event.clientY < rect.top || event.clientY > rect.bottom
-    ) event.currentTarget.close();
+      event.clientX < rect.left ||
+      event.clientX > rect.right ||
+      event.clientY < rect.top ||
+      event.clientY > rect.bottom
+    )
+      event.currentTarget.close();
   }
   function startPractice() {
     if (!draft.notes.length) return;
@@ -176,7 +179,15 @@ export default function App() {
               <h1 id="setup-title">Practice setup</h1>
               <p>Choose the notes you want to get to know.</p>
             </div>
-            <button type="button" className="close-drawer" autoFocus aria-label="Close practice setup" onClick={() => setupDialog.current?.close()}>×</button>
+            <button
+              type="button"
+              className="close-drawer"
+              autoFocus
+              aria-label="Close practice setup"
+              onClick={() => setupDialog.current?.close()}
+            >
+              ×
+            </button>
           </div>
           <fieldset className="clef-fieldset">
             <legend>Staff clef</legend>
@@ -286,10 +297,7 @@ export default function App() {
           </button>
         </dialog>
 
-        <section
-          className="practice-panel"
-          aria-label="Note flashcards"
-        >
+        <section className="practice-panel" aria-label="Note flashcards">
           <div className="session-topline">
             <div>
               <span className="eyebrow">YOUR PRACTICE</span>
