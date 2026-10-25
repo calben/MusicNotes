@@ -82,12 +82,6 @@ a:focus-visible {
   font-weight: 500;
   color: #71817b;
 }
-.site-header p {
-  margin: 0 0 0 auto;
-  color: #75817c;
-  font-size: 13px;
-  letter-spacing: 0.01em;
-}
 .workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -199,15 +193,7 @@ body:has(.setup-panel[open]) {
   font-size: 15px;
   color: #bd9450;
 }
-.eyebrow {
-  display: block;
-  color: #8d9a92;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-}
-.setup-heading h1,
-.session-topline h2 {
+.setup-heading h1 {
   font-family: "Manrope", sans-serif;
   color: var(--ink);
   letter-spacing: -0.045em;
@@ -215,12 +201,6 @@ body:has(.setup-panel[open]) {
 .setup-heading h1 {
   font-size: 24px;
   margin: 7px 0 5px;
-}
-.setup-heading p {
-  margin: 0;
-  color: #75817b;
-  font-size: 13px;
-  line-height: 1.5;
 }
 .clef-fieldset {
   border: 0;
@@ -392,12 +372,8 @@ body:has(.setup-panel[open]) {
 .session-topline {
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-bottom: 16px;
-}
-.session-topline h2 {
-  font-size: 21px;
-  margin: 6px 0 0;
 }
 .progress-count {
   font:
@@ -455,12 +431,6 @@ body:has(.setup-panel[open]) {
   padding: 6px 10px;
   font-size: 10px;
   font-weight: 600;
-}
-.card-overline {
-  font-size: 9px;
-  letter-spacing: 0.15em;
-  color: #a1a9a2;
-  font-weight: 700;
 }
 .staff-frame {
   width: min(100%, 640px);
@@ -521,11 +491,6 @@ body:has(.setup-panel[open]) {
 .reveal-button:hover {
   background: #10564f;
 }
-.card-footnote {
-  font-size: 10px;
-  color: #a2a8a2;
-  margin: 12px 0 0;
-}
 .card-back {
   justify-content: flex-start;
   min-height: 510px;
@@ -546,14 +511,6 @@ body:has(.setup-panel[open]) {
 .answer-note small {
   font-size: 12px;
   color: #82918a;
-}
-.answer-caption {
-  font-size: 13px;
-  color: #76847d;
-  margin: 5px 0 3px;
-}
-.answer-caption strong {
-  color: var(--ink);
 }
 .keyboard-wrap,
 .keyboard {
@@ -598,9 +555,6 @@ body:has(.setup-panel[open]) {
   color: white;
   min-width: 120px;
 }
-.card-back .card-footnote {
-  margin-top: 10px;
-}
 .sound-message {
   min-height: 18px;
   color: #9b613e;
@@ -620,11 +574,6 @@ body:has(.setup-panel[open]) {
   justify-content: center;
   text-align: center;
   padding: 25px;
-}
-.finish-star {
-  color: var(--gold);
-  font-size: 38px;
-  margin-bottom: 16px;
 }
 .finish-card h2 {
   font:
@@ -673,9 +622,6 @@ body:has(.setup-panel[open]) {
   }
   .brand {
     font-size: 18px;
-  }
-  .site-header p {
-    display: none;
   }
   .setup-heading h1 {
     font-size: 21px;
@@ -735,9 +681,6 @@ body:has(.setup-panel[open]) {
   }
   .session-topline {
     margin-bottom: 13px;
-  }
-  .session-topline h2 {
-    font-size: 19px;
   }
   .flashcard,
   .card-back {

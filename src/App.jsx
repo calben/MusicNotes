@@ -20,7 +20,7 @@ const STORAGE_KEY = "music-notes-settings-v1";
 const CLEFS = [
   { id: "treble", name: "Treble", hint: "Higher notes" },
   { id: "bass", name: "Bass", hint: "Lower notes" },
-  { id: "both", name: "Both", hint: "Mix them up" },
+  { id: "both", name: "Both", hint: "Treble + bass" },
 ];
 
 function readSettings() {
@@ -159,7 +159,6 @@ export default function App() {
             music<span className="brand-light">notes</span>
           </span>
         </a>
-        <p>A little practice. A little more confidence.</p>
         <button type="button" className="settings-button" onClick={openSetup}>
           <span aria-hidden="true">⚙</span> Practice setup
         </button>
@@ -175,9 +174,7 @@ export default function App() {
         >
           <div className="drawer-heading">
             <div className="setup-heading">
-              <span className="eyebrow">MAKE IT YOURS</span>
               <h1 id="setup-title">Practice setup</h1>
-              <p>Choose the notes you want to get to know.</p>
             </div>
             <button
               type="button"
@@ -299,10 +296,6 @@ export default function App() {
 
         <section className="practice-panel" aria-label="Note flashcards">
           <div className="session-topline">
-            <div>
-              <span className="eyebrow">YOUR PRACTICE</span>
-              <h2>One note at a time</h2>
-            </div>
             {!complete && (
               <span className="progress-count">
                 {mastered}
@@ -312,14 +305,9 @@ export default function App() {
           </div>
           {complete ? (
             <div className="finish-card" role="status">
-              <span className="finish-star" aria-hidden="true">
-                ✳
-              </span>
-              <span className="eyebrow">NICE WORK</span>
-              <h2>That’s a wrap.</h2>
+              <h2>Practice complete</h2>
               <p>
-                You marked all {roundSize} {roundSize === 1 ? "card" : "cards"}{" "}
-                as Got it.
+                {roundSize} {roundSize === 1 ? "card" : "cards"} completed.
               </p>
               <button type="button" className="start-button" onClick={restart}>
                 Practice again <span aria-hidden="true">↻</span>
@@ -356,7 +344,6 @@ export default function App() {
                       <span className="clef-badge">
                         {card.clef === "treble" ? "Treble clef" : "Bass clef"}
                       </span>
-                      <span className="card-overline">NAME THIS NOTE</span>
                     </div>
                     <div className="staff-frame">
                       <Staff note={card.note} clef={card.clef} hiddenLabel />
@@ -381,9 +368,6 @@ export default function App() {
                     >
                       Reveal answer
                     </button>
-                    <p className="card-footnote">
-                      Take a breath and have a guess.
-                    </p>
                   </article>
                   <article
                     className="flashcard card-back"
@@ -395,7 +379,6 @@ export default function App() {
                       <span className="clef-badge">
                         {card.clef === "treble" ? "Treble clef" : "Bass clef"}
                       </span>
-                      <span className="card-overline">THE ANSWER</span>
                     </div>
                     <h3 className="sr-only" ref={answerHeading} tabIndex="-1">
                       Answer: {card.note.id}
@@ -404,9 +387,6 @@ export default function App() {
                       <span>{card.note.letter}</span>
                       <small>octave {card.note.octave}</small>
                     </div>
-                    <p className="answer-caption">
-                      That’s <strong>{card.note.id}</strong>.
-                    </p>
                     <Keyboard note={card.note} onPlay={hear} showLabels />
                     <button
                       type="button"
@@ -443,9 +423,7 @@ export default function App() {
         </section>
       </div>
       <footer className="page-footer">
-        <span>Small steps make beautiful music.</span>
-        <span aria-hidden="true">·</span>
-        <span>Your settings stay on this device.</span>
+        <span>Settings saved on this device.</span>
       </footer>
     </main>
   );
