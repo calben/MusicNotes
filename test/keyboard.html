@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Piano input regression check</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import React, { useState } from "react";
+      import { createRoot } from "react-dom/client";
+      import Keyboard from "/src/Keyboard.jsx";
+      import "/src/music.css";
+
+      // Run with npm run dev, then open /test/keyboard.html. This records actual
+      // component callbacks without requiring speakers or browser audio access.
+      function Check() {
+        const [events, setEvents] = useState([]);
+        const [touchCanceled, setTouchCanceled] = useState(null);
+        function simulateTouch(midi) {
+          const key = document.querySelector(`[data-midi="${midi}"]`);
+          const touch = new Touch({ identifier: 1, target: key });
+          const start = new TouchEvent("touchstart", {
+            bubbles: true,
+            cancelable: true,
+            touches: [touch],
+            targetTouches: [touch],
+            changedTouches: [touch],
+          });
+          key.dispatchEvent(start);
+          setTouchCanceled(start.defaultPrevented);
+          key.dispatchEvent(
+            new TouchEvent("touchend", {
+              bubbles: true,
+              cancelable: true,
+              changedTouches: [touch],
+            }),
+          );
+        }
+        return React.createElement(
+          "main",
+          {
+            style: {
+              maxWidth: 520,
+              margin: "40px auto",
+              fontFamily: "sans-serif",
+            },
+          },
+          React.createElement("h1", null, "Piano input regression check"),
+          React.createElement(
+            "p",
+            null,
+            "G4 is the target. Every click or tap, including G4, should add exactly one event.",
+          ),
+          React.createElement(Keyboard, {
+            note: { id: "G4", letter: "G", octave: 4, midi: 67 },
+            onPlay: (note) => setEvents((previous) => [...previous, note]),
+          }),
+          React.createElement("h2", null, "Playback events"),
+          React.createElement(
+            "output",
+            { "data-testid": "events" },
+            JSON.stringify(events),
+          ),
+          React.createElement(
+            "p",
+            null,
+            React.createElement(
+              "button",
+              { onClick: () => simulateTouch(67) },
+              "Touch target G4",
+            ),
+            React.createElement(
+              "button",
+              { onClick: () => simulateTouch(61) },
+              "Touch black key Db4",
+            ),
+          ),
+          React.createElement(
+            "output",
+            { "data-testid": "touch-canceled" },
+            `Touch default canceled: ${touchCanceled}`,
+          ),
+        );
+      }
+      createRoot(document.getElementById("root")).render(
+        React.createElement(Check),
+      );
+    </script>
+  </body>
+</html>

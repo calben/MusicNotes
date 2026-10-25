@@ -40,7 +40,9 @@ The selectable quiz pitches are natural notes; black keys can be played on the a
 
 ## Verification
 
-`npm test` checks note/MIDI accuracy, saved-settings recovery, exact clef/pitch selection, and shuffled-deck membership. Browser checks covered 1024 × 768 landscape and 768 × 1024 portrait, note reveal, key highlighting and playback, retry/completion including one-card decks, saved settings, empty selections, and extreme ledger notes. Physical iPad/Safari testing remains a useful final device check.
+`npm test` checks note/MIDI accuracy, saved-settings recovery, exact clef/pitch selection, shuffled-deck membership, and repeated piano input. Browser checks covered 1024 × 768 landscape and 768 × 1024 portrait, enlarged notation, note reveal, key highlighting and playback, retry/completion including one-card decks, saved settings, empty selections, and extreme ledger notes. Physical iPad/Safari testing remains a useful final device check.
+
+For a focused piano regression check, run `npm run dev` and open `/test/keyboard.html`. Each click or tap should append exactly one pitch to the event list, even when repeating the highlighted target or a black key. The touch simulation buttons exercise the component's native touch listeners and verify that compatibility mouse events are prevented. This fixture records callbacks without needing speakers and is excluded from the production build.
 
 Development screenshots are in [screenshots/](screenshots/). No remote font or sample requests are needed. The production JavaScript is approximately 504 kB gzipped, including the notation fonts and synthesizer.
 

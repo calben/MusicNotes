@@ -61,6 +61,22 @@ export function newDeck(cards, previousId) {
 }
 
 let synthPromise;
+const noop = () => {};
+
+/**
+ * Keep piano input events independent from programmatic active-note state.
+ * react-piano gates playNote on activeNotes changes, but onPlayNoteInput runs
+ * for every gesture, including an already-active key.
+ */
+export function createPianoInputProps(onPlay, onStop) {
+  return {
+    playNote: noop,
+    stopNote: noop,
+    onPlayNoteInput: onPlay,
+    onStopNoteInput: onStop,
+  };
+}
+
 export async function playNote(noteId) {
   const match = /^([A-G])([#b]?)([2-6])$/.exec(noteId || "");
   if (!match) throw new Error(`Unknown note: ${noteId}`);
@@ -78,10 +94,19 @@ export async function playNote(noteId) {
   if (!synthPromise) {
     synthPromise = Promise.resolve()
       .then(() =>
-        new Tone.Synth({
-          oscillator: { type: "triangle" },
-          envelope: { attack: 0.015, decay: 0.18, sustain: 0.22, release: 0.8 },
-          volume: -8,
+        new Tone.PolySynth({
+          voice: Tone.Synth,
+          maxPolyphony: 8,
+          options: {
+            oscillator: { type: "triangle" },
+            envelope: {
+              attack: 0.015,
+              decay: 0.18,
+              sustain: 0.22,
+              release: 0.8,
+            },
+            volume: -8,
+          },
         }).toDestination(),
       )
       .catch((error) => {

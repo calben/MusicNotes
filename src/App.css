@@ -463,7 +463,7 @@ body:has(.setup-panel[open]) {
   font-weight: 700;
 }
 .staff-frame {
-  width: min(100%, 520px);
+  width: min(100%, 640px);
   min-height: 155px;
   display: grid;
   place-items: center;

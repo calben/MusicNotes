@@ -30,6 +30,23 @@
   background: #b8d7ff;
 }
 
+.music-keyboard .ReactPiano__Key {
+  touch-action: none;
+}
+
+.music-keyboard .music-keyboard__key-target {
+  background: #d7e7fb;
+}
+
+.music-keyboard .music-keyboard__key-target.ReactPiano__Key--accidental {
+  background: #315b8e;
+  border-color: #9ec5f3;
+}
+
+.music-keyboard .music-keyboard__key-pressed {
+  box-shadow: inset 0 0 0 3px #2674c7;
+}
+
 .music-keyboard .ReactPiano__Key:focus-visible {
   z-index: 2;
   outline: 3px solid #165dba;

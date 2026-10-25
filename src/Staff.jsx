@@ -10,18 +10,21 @@ export default function Staff({ note, clef = "treble", hiddenLabel = true }) {
     if (!host || !note) return undefined;
     let observer;
     const draw = () => {
+      const scale = 1.6;
       const width = Math.max(240, Math.floor(host.clientWidth || 320));
+      const logicalWidth = width / scale;
       const letterIndex = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
       const noteStep = note.octave * 7 + letterIndex[note.letter];
       const referenceStep = clef === "bass" ? 2 * 7 + 4 : 4 * 7 + 2; // Bottom line: G2 bass, E4 treble.
       const noteY = 80 - (noteStep - referenceStep) * 5;
       const staveY = Math.max(20, 60 - noteY);
-      const height = Math.max(170, staveY + 115, staveY + noteY + 25);
+      const logicalHeight = Math.max(170, staveY + 115, staveY + noteY + 25);
       host.replaceChildren();
       const renderer = new Renderer(host, Renderer.Backends.SVG);
-      renderer.resize(width, height);
+      renderer.resize(width, Math.ceil(logicalHeight * scale));
       const context = renderer.getContext();
-      const stave = new Stave(12, staveY, width - 24);
+      context.scale(scale, scale);
+      const stave = new Stave(12, staveY, logicalWidth - 24);
       stave.addClef(clef).setContext(context).draw();
       const staveNote = new StaveNote({
         clef,
@@ -32,7 +35,7 @@ export default function Staff({ note, clef = "treble", hiddenLabel = true }) {
       });
       const voice = new Voice({ numBeats: 1, beatValue: 4 }).setStrict(false);
       voice.addTickables([staveNote]);
-      new Formatter().joinVoices([voice]).format([voice], width - 112);
+      new Formatter().joinVoices([voice]).format([voice], logicalWidth - 112);
       voice.draw(context, stave);
       const svg = host.querySelector("svg");
       if (svg) {
