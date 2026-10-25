@@ -96,7 +96,8 @@ export async function playNote(noteId) {
       .then(() =>
         new Tone.PolySynth({
           voice: Tone.Synth,
-          maxPolyphony: 8,
+          // Leave room for rapid taps while earlier tones finish fading out.
+          maxPolyphony: 32,
           options: {
             oscillator: { type: "triangle" },
             envelope: {
