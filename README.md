@@ -34,7 +34,7 @@ The quiz flow is intentionally local and lightweight; a full quiz framework woul
 
 ## Practice range
 
-Middle C is C4. The available natural-note range is C2 through C6. Choose treble, bass, or both clefs and the notes to include, then press **Start practice**. Reveal each answer to see its letter, octave, and highlighted piano key. **Again** returns a missed card to the end of the deck; **Got it** marks it complete. Tap **Hear the note** or any piano key to play a synthesized tone. Your selection is stored in browser local storage on the current device.
+Middle C is C4. The available natural-note range is C2 through C6. Open **Practice setup** in the header to choose treble, bass, or both clefs and the notes to include, then press **Start practice**. Setup stays in a dismissible side drawer so the flashcard can use the screen. Closing the drawer without starting keeps the current round. Reveal each answer to see its letter, octave, and highlighted piano key. **Again** returns a missed card to the end of the deck; **Got it** marks it complete. Tap **Hear the note** or any piano key to play a synthesized tone. Your selection is stored in browser local storage on the current device.
 
 The selectable quiz pitches are natural notes; black keys can be played on the answer keyboard. Each selected pitch appears on each selected clef, so choosing both clefs doubles the cards.
 

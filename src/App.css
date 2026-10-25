@@ -53,6 +53,7 @@ a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 18px;
   border-bottom: 1px solid rgba(23, 61, 58, 0.11);
   margin-bottom: 29px;
 }
@@ -82,15 +83,15 @@ a:focus-visible {
   color: #71817b;
 }
 .site-header p {
-  margin: 0;
+  margin: 0 0 0 auto;
   color: #75817c;
   font-size: 13px;
   letter-spacing: 0.01em;
 }
 .workspace {
   display: grid;
-  grid-template-columns: minmax(280px, 310px) minmax(0, 1fr);
-  gap: 28px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   align-items: stretch;
   flex: 1;
 }
@@ -102,8 +103,101 @@ a:focus-visible {
   box-shadow: var(--shadow);
 }
 .setup-panel {
-  padding: 27px 22px 22px;
-  align-self: start;
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  width: min(480px, calc(100vw - 24px));
+  height: 100dvh;
+  max-height: 100dvh;
+  padding: 0;
+  border: 0;
+  border-radius: 18px 0 0 18px;
+  background: #fffefa;
+  color: var(--ink);
+  box-shadow: -22px 0 60px rgba(22, 54, 48, 0.16);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.setup-panel::backdrop {
+  background: rgba(17, 46, 42, 0.44);
+  backdrop-filter: blur(2px);
+}
+body:has(.setup-panel[open]) {
+  overflow: hidden;
+}
+.drawer-heading {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 25px 24px 16px;
+  background: #fffefa;
+  border-bottom: 1px solid var(--line);
+}
+.close-drawer {
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #e2e5dc;
+  background: #fffefa;
+  border-radius: 10px;
+  color: #60746c;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1;
+}
+.close-drawer:hover {
+  background: #f1f4ef;
+}
+.setup-panel > .clef-fieldset,
+.setup-panel > .pitch-heading,
+.setup-panel > .preset-row,
+.setup-panel > .selection-actions,
+.setup-panel > .pitch-groups,
+.setup-panel > .form-hint {
+  margin-left: 24px;
+  margin-right: 24px;
+}
+.setup-panel > .clef-fieldset {
+  margin-top: 20px;
+  margin-bottom: 19px;
+}
+.setup-panel > .preset-row {
+  margin-top: 10px;
+  margin-bottom: 11px;
+}
+.setup-panel > .selection-actions {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+.setup-panel > .start-button {
+  width: calc(100% - 48px);
+  margin: 18px 24px calc(24px + env(safe-area-inset-bottom));
+}
+.settings-button {
+  min-height: 44px;
+  border: 1px solid #d9e4dd;
+  border-radius: 9px;
+  background: #fffefa;
+  color: #35675e;
+  padding: 0 15px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.settings-button:hover {
+  background: #edf4ef;
+  border-color: #b8cec4;
+}
+.settings-button span {
+  font-size: 15px;
+  color: #bd9450;
 }
 .eyebrow {
   display: block;
@@ -193,10 +287,10 @@ a:focus-visible {
   background: #f0eee5;
   border-radius: 6px;
   padding: 6px 8px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
   color: #61716a;
-  min-height: 30px;
+  min-height: 44px;
 }
 .preset-row button:hover {
   background: #e7e5d9;
@@ -222,13 +316,18 @@ a:focus-visible {
 }
 .pitch-buttons {
   display: flex;
-  gap: 6px;
+  gap: 7px;
   flex: 1;
+  overflow-x: auto;
+  padding: 2px 1px;
+  scrollbar-width: thin;
 }
 .pitch-chip {
-  height: 34px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   flex: 1;
-  max-width: 39px;
+  max-width: none;
   border: 1px solid #e9e8e0;
   background: #fffefa;
   border-radius: 8px;
@@ -267,7 +366,7 @@ a:focus-visible {
     transform 0.15s;
 }
 .setup-panel > .start-button {
-  margin-top: 17px;
+  margin-top: 18px;
 }
 .start-button:hover:not(:disabled),
 .got-it-button:hover {
@@ -283,7 +382,9 @@ a:focus-visible {
   font-weight: 400;
 }
 .practice-panel {
-  padding: 27px 31px 25px;
+  width: min(100%, 900px);
+  margin: 0 auto;
+  padding: 30px 34px 26px;
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -541,9 +642,6 @@ a:focus-visible {
 .finish-card .start-button {
   max-width: 240px;
 }
-.practice-panel {
-  scroll-margin-top: 16px;
-}
 .page-footer {
   display: flex;
   justify-content: center;
@@ -556,22 +654,12 @@ a:focus-visible {
   .app-shell {
     padding: 19px 22px 16px;
   }
-  .workspace {
-    grid-template-columns: minmax(230px, 0.85fr) minmax(0, 1.65fr);
-    gap: 16px;
-  }
-  .setup-panel {
-    padding: 21px 16px;
-  }
   .practice-panel {
     padding: 22px 20px;
   }
   .flashcard,
   .card-back {
     min-height: 490px;
-  }
-  .pitch-chip {
-    max-width: 35px;
   }
 }
 @media (max-width: 650px) {
@@ -581,19 +669,13 @@ a:focus-visible {
   .site-header {
     height: 55px;
     margin-bottom: 17px;
+    gap: 8px;
   }
   .brand {
     font-size: 18px;
   }
   .site-header p {
-    font-size: 10px;
-  }
-  .workspace {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-  .setup-panel {
-    padding: 19px 17px;
+    display: none;
   }
   .setup-heading h1 {
     font-size: 21px;
@@ -609,6 +691,47 @@ a:focus-visible {
   }
   .practice-panel {
     padding: 19px 13px;
+  }
+  .settings-button {
+    padding: 0 10px;
+  }
+  .setup-panel {
+    width: min(420px, calc(100vw - 16px));
+  }
+  .drawer-heading {
+    padding: 19px 17px 14px;
+  }
+  .setup-panel > .clef-fieldset,
+  .setup-panel > .pitch-heading,
+  .setup-panel > .preset-row,
+  .setup-panel > .selection-actions,
+  .setup-panel > .pitch-groups,
+  .setup-panel > .form-hint {
+    margin-left: 17px;
+    margin-right: 17px;
+  }
+  .setup-panel > .start-button {
+    width: calc(100% - 34px);
+    margin-left: 17px;
+    margin-right: 17px;
+  }
+  .preset-row {
+    flex-wrap: wrap;
+  }
+  .preset-row button {
+    padding: 0 10px;
+  }
+  .pitch-buttons {
+    gap: 5px;
+  }
+  .pitch-chip {
+    min-width: 42px;
+  }
+  .grade-hint {
+    display: none;
+  }
+  .grade-actions .again-button {
+    min-width: auto;
   }
   .session-topline {
     margin-bottom: 13px;
@@ -657,7 +780,8 @@ a:focus-visible {
   background: #fffefa;
   border-radius: 7px;
   padding: 0 10px;
-  min-height: 38px;
+  min-height: 44px;
+  min-width: 80px;
   color: #68766f;
   font-size: 11px;
   font-weight: 600;
@@ -665,16 +789,6 @@ a:focus-visible {
 .selection-actions button:hover {
   background: #edf4ef;
   color: var(--ink);
-}
-.setup-jump {
-  display: none;
-  color: #63847a;
-  font-size: 11px;
-  text-decoration: none;
-  margin-top: 5px;
-}
-.setup-jump:hover {
-  text-decoration: underline;
 }
 .grade-hint {
   font-weight: 500;
@@ -685,70 +799,12 @@ a:focus-visible {
 .grade-actions .again-button {
   min-width: 148px;
 }
-@media (min-width: 1000px) {
-  .workspace {
-    grid-template-columns: 430px minmax(0, 1fr);
-  }
-  .setup-panel {
-    padding: 27px 20px 24px;
-  }
-  .pitch-chip {
-    max-width: none;
-    min-height: 44px;
-  }
+.keyboard-wrap,
+.music-keyboard {
+  width: min(100%, 520px);
+  margin-left: auto;
+  margin-right: auto;
 }
-@media (max-width: 999px) {
-  .workspace {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
-  }
-  .practice-panel {
-    grid-row: 1;
-  }
-  .setup-panel {
-    grid-row: 2;
-  }
-  .setup-jump {
-    display: inline-block;
-  }
-  .pitch-chip {
-    max-width: none;
-    min-height: 44px;
-  }
-  .pitch-buttons {
-    gap: 8px;
-  }
-  .preset-row button,
-  .selection-actions button {
-    min-height: 44px;
-  }
-  .preset-row {
-    gap: 7px;
-  }
-  .selection-actions {
-    margin-top: -3px;
-  }
-}
-@media (max-width: 650px) {
-  .pitch-buttons {
-    gap: 6px;
-  }
-  .preset-row {
-    flex-wrap: wrap;
-  }
-  .preset-row button {
-    padding: 0 10px;
-  }
-  .selection-actions {
-    margin-top: 0;
-  }
-  .grade-hint {
-    display: none;
-  }
-  .grade-actions .again-button {
-    min-width: auto;
-  }
-  .setup-jump {
-    font-size: 10px;
-  }
+.card-back .keyboard-wrap {
+  max-width: 520px;
 }

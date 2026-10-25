@@ -44,7 +44,7 @@ export default function App() {
   const [soundError, setSoundError] = useState("");
   const questionHeading = useRef(null);
   const answerHeading = useRef(null);
-  const practicePanel = useRef(null);
+  const setupDialog = useRef(null);
   const card = deck[index];
   const complete = index >= deck.length;
   const noteIds = useMemo(() => new Set(draft.notes), [draft.notes]);
@@ -88,6 +88,18 @@ export default function App() {
   function clearSelection() {
     setDraft((current) => ({ ...current, notes: [] }));
   }
+  function openSetup() {
+    setDraft(settings);
+    setupDialog.current?.showModal();
+  }
+  function closeSetupFromBackdrop(event) {
+    if (event.target !== event.currentTarget) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    if (
+      event.clientX < rect.left || event.clientX > rect.right ||
+      event.clientY < rect.top || event.clientY > rect.bottom
+    ) event.currentTarget.close();
+  }
   function startPractice() {
     if (!draft.notes.length) return;
     const safe = normalizeSettings(draft);
@@ -100,11 +112,7 @@ export default function App() {
     setMastered(0);
     setFlipped(false);
     setSoundError("");
-    if (window.innerWidth < 1000)
-      practicePanel.current?.scrollIntoView({
-        behavior: reducedMotion ? "auto" : "smooth",
-        block: "start",
-      });
+    setupDialog.current?.close();
   }
   function advance() {
     setFlipped(false);
@@ -149,14 +157,26 @@ export default function App() {
           </span>
         </a>
         <p>A little practice. A little more confidence.</p>
+        <button type="button" className="settings-button" onClick={openSetup}>
+          <span aria-hidden="true">⚙</span> Practice setup
+        </button>
       </header>
 
       <div className="workspace" id="top">
-        <aside className="setup-panel" aria-labelledby="setup-title">
-          <div className="setup-heading">
-            <span className="eyebrow">MAKE IT YOURS</span>
-            <h1 id="setup-title">Practice setup</h1>
-            <p>Choose the notes you want to get to know.</p>
+        <dialog
+          ref={setupDialog}
+          id="practice-setup"
+          className="setup-panel"
+          aria-labelledby="setup-title"
+          onClick={closeSetupFromBackdrop}
+        >
+          <div className="drawer-heading">
+            <div className="setup-heading">
+              <span className="eyebrow">MAKE IT YOURS</span>
+              <h1 id="setup-title">Practice setup</h1>
+              <p>Choose the notes you want to get to know.</p>
+            </div>
+            <button type="button" className="close-drawer" autoFocus aria-label="Close practice setup" onClick={() => setupDialog.current?.close()}>×</button>
           </div>
           <fieldset className="clef-fieldset">
             <legend>Staff clef</legend>
@@ -264,20 +284,16 @@ export default function App() {
           >
             Start practice <span aria-hidden="true">→</span>
           </button>
-        </aside>
+        </dialog>
 
         <section
           className="practice-panel"
-          ref={practicePanel}
           aria-label="Note flashcards"
         >
           <div className="session-topline">
             <div>
               <span className="eyebrow">YOUR PRACTICE</span>
               <h2>One note at a time</h2>
-              <a className="setup-jump" href="#setup-title">
-                Adjust setup ↓
-              </a>
             </div>
             {!complete && (
               <span className="progress-count">
