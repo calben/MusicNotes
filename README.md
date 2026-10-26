@@ -6,14 +6,15 @@ A touch-friendly note-reading practice app for tablets. It runs in the browser a
 
 ## Practice
 
-Choose one of four ways to answer a note:
+Choose one of five ways to answer a note:
 
 - **Flashcards** — reveal the written note's name and octave.
-- **Guided letters** — choose from two or three letter buttons, with an optional hint.
+- **Guided letters** — choose from two to five letter buttons, with automatic help after mistakes.
 - **All letters** — choose from A through G.
-- **Piano keys** — tap the matching pitch on the on-screen keyboard.
+- **Piano keys** — read a staff note, then tap its matching pitch on the keyboard.
+- **Keyboard to letter** — identify the letter of a highlighted piano key.
 
-Guided letters is the default. A round has five notes by default; choose 10 or all selected notes in Practice setup. Wrong answers stay on the current note until it is answered correctly. Guided letters offers increasing help automatically; in the other answer modes, use **Hint** when you want help. You can switch on the optional 60-second challenge for All letters or Piano keys; Guided letters always stays untimed. The challenge ends when time runs out or the selected round is complete. All letters and Piano keys show first-try accuracy and elapsed time when the round ends.
+Guided letters is the default. A round has five notes by default; choose 10 or all selected notes in Practice setup. Wrong answers stay on the current note until it is answered correctly. Guided letters offers increasing help automatically; in the other answer modes, use **Hint** when you want help. You can switch on the optional 60-second challenge for the answer modes; Guided letters always stays untimed. The challenge ends when time runs out or the selected round is complete. All letters, Piano keys, and Keyboard to letter show first-try accuracy and elapsed time when the round ends.
 
 For piano-key answers, the selected pitch must match the note's octave as well as its letter. In Flashcards, **Again** puts a missed card at the end of the deck. Tap **Hear the note** or a piano key to hear a synthesized tone.
 

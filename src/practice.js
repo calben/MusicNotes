@@ -19,7 +19,7 @@ export function createRound(cards, roundLength = 5) {
 
 export function answerChoices(card, choiceCount = 2, selectedCards = []) {
   if (!card?.note?.letter) return [];
-  const count = choiceCount === 3 ? 3 : 2;
+  const count = [2, 3, 4, 5].includes(choiceCount) ? choiceCount : 2;
   const correct = card.note.letter.toUpperCase();
   const selectedLetters = [
     ...new Set(

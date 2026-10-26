@@ -54,13 +54,17 @@ test("guided choices include one correct letter and no duplicates", () => {
   const selected = buildCards({ clef: "treble", notes: ["C4", "D4", "E4"] });
   const twoChoices = answerChoices(card, 2, selected);
   const threeChoices = answerChoices(card, 3, selected);
+  const fourChoices = answerChoices(card, 4, selected);
+  const fiveChoices = answerChoices(card, 5, selected);
 
   assert.equal(twoChoices.length, 2);
   assert.equal(threeChoices.length, 3);
-  for (const choices of [twoChoices, threeChoices]) {
+  assert.equal(fourChoices.length, 4);
+  assert.equal(fiveChoices.length, 5);
+  for (const choices of [twoChoices, threeChoices, fourChoices, fiveChoices]) {
     assert.equal(new Set(choices).size, choices.length);
     assert.equal(choices.filter((letter) => letter === "C").length, 1);
-    assert.ok(choices.every((letter) => ["C", "D", "E"].includes(letter)));
+    assert.ok(choices.every((letter) => "ABCDEFG".includes(letter)));
   }
 });
 

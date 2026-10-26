@@ -20,6 +20,7 @@ const PROMPTS = {
   guided: "Tap the letter that names this note.",
   letters: "Choose the note name.",
   keyboard: "Tap the matching piano key.",
+  "keyboard-letters": "Tap the letter for the highlighted piano key.",
 };
 export default function PracticeSession({ settings, paused = false }) {
   const config = useMemo(() => normalizeSettings(settings), [settings]);
@@ -32,7 +33,11 @@ export default function PracticeSession({ settings, paused = false }) {
     config.choiceCount,
     config.timed,
   ]);
-  const cards = useMemo(() => buildCards(config), [settingsKey]);
+  const cards = useMemo(() => {
+    const built = buildCards(config);
+    if (config.mode !== "keyboard-letters") return built;
+    return [...new Map(built.map((item) => [item.note.id, item])).values()];
+  }, [settingsKey]);
   const keyboardRange = useMemo(() => getKeyboardRange(cards), [cards]);
   const [round, setRound] = useState(() =>
     createRound(cards, config.roundLength),
@@ -62,7 +67,8 @@ export default function PracticeSession({ settings, paused = false }) {
     [card, index, config.choiceCount, cards],
   );
   const live = phase !== "idle" && phase !== "complete";
-  const forcedAnswer = config.mode === "guided" && wrongCount >= 2;
+  const choiceMode = ["guided", "keyboard-letters"].includes(config.mode);
+  const forcedAnswer = choiceMode && wrongCount >= 2;
   const hintRevealsTarget = showHint || phase === "correct";
 
   const resetSession = useCallback(
@@ -189,7 +195,7 @@ export default function PracticeSession({ settings, paused = false }) {
       const nextWrong = wrongRef.current + 1;
       wrongRef.current = nextWrong;
       setWrongCount(nextWrong);
-      if (config.mode === "guided" && nextWrong >= 2) {
+      if (choiceMode && nextWrong >= 2) {
         setShowHint(true);
         hintedRef.current = true;
         setSelectedAnswer("");
@@ -197,14 +203,14 @@ export default function PracticeSession({ settings, paused = false }) {
         setFeedbackKind("wrong");
       } else {
         setFeedback(
-          config.mode === "guided"
+          choiceMode
             ? "Try once more."
             : "Not quite. Try again, or use Hint.",
         );
         setFeedbackKind("wrong");
       }
     },
-    [card, config.mode, paused, phase, recordFirstAnswer],
+    [card, choiceMode, config.mode, paused, phase, recordFirstAnswer],
   );
 
   useEffect(() => {
@@ -212,7 +218,7 @@ export default function PracticeSession({ settings, paused = false }) {
       return undefined;
     }
     const availableLetters =
-      config.mode === "guided"
+      choiceMode
         ? forcedAnswer
           ? [card?.note?.letter]
           : choices
@@ -238,6 +244,7 @@ export default function PracticeSession({ settings, paused = false }) {
   }, [
     card?.note?.letter,
     choices,
+    choiceMode,
     config.mode,
     forcedAnswer,
     handleAnswer,
@@ -273,6 +280,16 @@ export default function PracticeSession({ settings, paused = false }) {
       handleAnswer(noteId);
     },
     [card, handleAnswer, paused],
+  );
+
+  const handleKeyboardPreview = useCallback(
+    (noteId) => {
+      if (paused) return;
+      playNote(noteId).catch(() =>
+        setAudioError("Sound could not start. Check your device audio."),
+      );
+    },
+    [paused],
   );
 
   const finish = useCallback(() => {
@@ -382,12 +399,24 @@ export default function PracticeSession({ settings, paused = false }) {
       </div>
       {card && (
         <section className="practice-question-wrap" aria-label="Current note">
-          {card.clef === "bass" && (
+          {config.mode !== "keyboard-letters" && card.clef === "bass" && (
             <span className="badge badge-primary clef-badge">Bass clef</span>
           )}
-          <Staff note={card.note} clef={card.clef} hiddenLabel compact />
+          {config.mode === "keyboard-letters" ? (
+            <div className="practice-keyboard">
+              <Keyboard
+                note={card.note}
+                onPlay={handleKeyboardPreview}
+                showLabels={false}
+                highlightTarget
+                rangeOverride={keyboardRange}
+              />
+            </div>
+          ) : (
+            <Staff note={card.note} clef={card.clef} hiddenLabel compact />
+          )}
           <h2 className="practice-question">{PROMPTS[config.mode]}</h2>
-          {config.mode === "guided" && (
+          {choiceMode && (
             <div className="practice-choices">
               {choices.map((letter) => (
                 <button
@@ -443,7 +472,8 @@ export default function PracticeSession({ settings, paused = false }) {
             </div>
           )}
           <div className="practice-question-actions">
-            {config.mode !== "keyboard" && (
+            {config.mode !== "keyboard" &&
+              config.mode !== "keyboard-letters" && (
               <button
                 type="button"
                 className="btn btn-outline practice-play-note"

@@ -36,6 +36,11 @@ export const PRACTICE_MODES = [
     description: "Find the exact pitch on a piano.",
   },
   {
+    id: "keyboard-letters",
+    label: "Keyboard to letter",
+    description: "Name the note shown by a piano key.",
+  },
+  {
     id: "flashcards",
     label: "Flashcards",
     description: "Reveal each note and check yourself.",
@@ -75,7 +80,7 @@ export function normalizeSettings(value) {
     roundLength: [0, 5, 10].includes(value?.roundLength)
       ? value.roundLength
       : DEFAULT_SETTINGS.roundLength,
-    choiceCount: [2, 3].includes(value?.choiceCount)
+    choiceCount: [2, 3, 4, 5].includes(value?.choiceCount)
       ? value.choiceCount
       : DEFAULT_SETTINGS.choiceCount,
     timed:

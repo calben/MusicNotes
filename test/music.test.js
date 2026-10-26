@@ -44,7 +44,7 @@ test("malformed fields safely fall back while valid notes are retained", () => {
     notes: ["C4", "H9", "C4"],
     mode: "unknown",
     roundLength: 7,
-    choiceCount: 4,
+    choiceCount: 6,
     timed: 1,
   });
 

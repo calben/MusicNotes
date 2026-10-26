@@ -247,11 +247,11 @@ export default function App() {
           </fieldset>
           {draft.mode !== "flashcards" && (
             <div className="practice-options">
-              {draft.mode === "guided" && (
+              {["guided", "keyboard-letters"].includes(draft.mode) && (
                 <fieldset className="option-fieldset">
                   <legend>Answer choices</legend>
                   <div className="segmented-options">
-                    {[2, 3].map((choiceCount) => (
+                    {[2, 3, 4, 5].map((choiceCount) => (
                       <button
                         type="button"
                         key={choiceCount}
