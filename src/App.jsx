@@ -209,7 +209,7 @@ export default function App() {
                 <button
                   type="button"
                   key={mode.id}
-                  className={`btn mode-option ${draft.mode === mode.id ? "btn-primary selected" : "btn-outline"}`}
+                  className={`btn mode-option ${draft.mode === mode.id ? "btn-primary" : "btn-outline"}`}
                   aria-pressed={draft.mode === mode.id}
                   onClick={() =>
                     setDraft((current) => ({
@@ -236,7 +236,7 @@ export default function App() {
                         type="button"
                         key={choiceCount}
                         aria-pressed={draft.choiceCount === choiceCount}
-                        className={`btn ${draft.choiceCount === choiceCount ? "btn-primary selected" : "btn-outline"}`}
+                        className={`btn ${draft.choiceCount === choiceCount ? "btn-primary" : "btn-outline"}`}
                         onClick={() =>
                           setDraft((current) => ({ ...current, choiceCount }))
                         }
@@ -255,7 +255,7 @@ export default function App() {
                       type="button"
                       key={length}
                       aria-pressed={draft.roundLength === length}
-                      className={`btn ${draft.roundLength === length ? "btn-primary selected" : "btn-outline"}`}
+                      className={`btn ${draft.roundLength === length ? "btn-primary" : "btn-outline"}`}
                       onClick={() =>
                         setDraft((current) => ({
                           ...current,
@@ -296,7 +296,7 @@ export default function App() {
                 <button
                   type="button"
                   key={id}
-                  className={`btn clef-option ${draft.clef === id ? "btn-primary selected" : "btn-outline"}`}
+                  className={`btn clef-option ${draft.clef === id ? "btn-primary" : "btn-outline"}`}
                   aria-pressed={draft.clef === id}
                   onClick={() => setClef(id)}
                 >
@@ -373,7 +373,7 @@ export default function App() {
                     <button
                       type="button"
                       key={note.id}
-                      className={`btn pitch-chip ${noteIds.has(note.id) ? "btn-primary chosen" : "btn-outline"}`}
+                      className={`btn pitch-chip ${noteIds.has(note.id) ? "btn-primary" : "btn-outline"}`}
                       aria-pressed={noteIds.has(note.id)}
                       aria-label={`${note.id}${noteIds.has(note.id) ? ", selected" : ""}`}
                       onClick={() => toggleNote(note.id)}

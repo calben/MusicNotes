@@ -392,7 +392,7 @@ export default function PracticeSession({ settings, paused = false }) {
                 <button
                   type="button"
                   key={letter}
-                  className={`btn btn-primary btn-lg answer-choice ${selectedAnswer === letter && lastAnswerCorrect ? "correct" : ""} ${selectedAnswer === letter && !lastAnswerCorrect ? "wrong" : ""} ${showHint && letter === card.note.letter ? "highlighted" : ""}`}
+                  className={`btn btn-lg answer-choice ${selectedAnswer === letter ? (lastAnswerCorrect ? "btn-success" : "btn-error") : showHint && letter === card.note.letter ? "btn-success" : "btn-primary"}`}
                   onClick={() => handleAnswer(letter)}
                   disabled={
                     paused ||
@@ -416,7 +416,7 @@ export default function PracticeSession({ settings, paused = false }) {
                 <button
                   type="button"
                   key={letter}
-                  className={`btn btn-primary btn-lg answer-choice ${selectedAnswer === letter && lastAnswerCorrect ? "correct" : ""} ${selectedAnswer === letter && !lastAnswerCorrect ? "wrong" : ""} ${showHint && letter === card.note.letter ? "highlighted" : ""}`}
+                  className={`btn btn-lg answer-choice ${selectedAnswer === letter ? (lastAnswerCorrect ? "btn-success" : "btn-error") : showHint && letter === card.note.letter ? "btn-success" : "btn-primary"}`}
                   onClick={() => handleAnswer(letter)}
                   disabled={paused || phase === "correct"}
                 >
@@ -462,7 +462,7 @@ export default function PracticeSession({ settings, paused = false }) {
             </button>
           </div>
           <p
-            className={`practice-feedback ${feedback ? "visible" : ""} ${feedbackKind}`}
+            className={`practice-feedback ${feedback ? "visible" : ""} ${feedbackKind === "correct" ? "text-success" : feedbackKind === "wrong" ? "text-error" : ""}`}
             role="status"
             aria-live="polite"
           >

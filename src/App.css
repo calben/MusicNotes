@@ -24,16 +24,6 @@ body {
   min-height: 100vh;
   background: var(--color-base-200);
 }
-button {
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-}
-button:focus-visible,
-a:focus-visible {
-  outline: 3px solid #d2a746;
-  outline-offset: 3px;
-}
 .app-shell {
   max-width: 1220px;
   margin: 0 auto;
@@ -129,16 +119,8 @@ body:has(.setup-panel[open]) {
   flex: 0 0 44px;
   width: 44px;
   height: 44px;
-  border: 1px solid #e2e5dc;
-  background: #fffefa;
-  border-radius: 10px;
-  color: #60746c;
   font-size: 28px;
-  font-weight: 400;
   line-height: 1;
-}
-.close-drawer:hover {
-  background: #f1f4ef;
 }
 .setup-panel > .clef-fieldset,
 .setup-panel > .mode-fieldset,
@@ -177,25 +159,12 @@ body:has(.setup-panel[open]) {
 }
 .settings-button {
   min-height: 44px;
-  border: 1px solid #d9e4dd;
-  border-radius: 9px;
-  background: #fffefa;
-  color: #35675e;
   padding: 0 15px;
-  font-size: 12px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
   gap: 8px;
   white-space: nowrap;
 }
-.settings-button:hover {
-  background: #edf4ef;
-  border-color: #b8cec4;
-}
 .settings-button span {
   font-size: 15px;
-  color: #bd9450;
 }
 .mode-fieldset,
 .option-fieldset {
@@ -223,24 +192,6 @@ body:has(.setup-panel[open]) {
   gap: 4px;
   padding: 10px 12px;
   text-align: left;
-  border: 1px solid #e2e8e1;
-  border-radius: 10px;
-  background: #fffefa;
-}
-.mode-option > span {
-  font-size: 12px;
-  font-weight: 700;
-}
-.mode-option small {
-  color: #7a8780;
-  font-size: 10px;
-  line-height: 1.35;
-}
-.mode-option.selected {
-  background: #edf5f1;
-  border-color: #76a79d;
-  box-shadow: inset 0 0 0 1px #76a79d;
-  color: #145e56;
 }
 .practice-options {
   display: flex;
@@ -257,18 +208,6 @@ body:has(.setup-panel[open]) {
 .segmented-options button {
   min-height: 44px;
   flex: 1;
-  border: 1px solid #e3e6dd;
-  border-radius: 8px;
-  background: #fffefa;
-  color: #65756d;
-  font-size: 11px;
-  font-weight: 600;
-}
-.segmented-options button.selected {
-  border-color: #76a79d;
-  background: #edf5f1;
-  color: #145e56;
-  box-shadow: inset 0 0 0 1px #76a79d;
 }
 .toggle-option {
   min-height: 58px;
@@ -328,29 +267,12 @@ body:has(.setup-panel[open]) {
 }
 .clef-option {
   min-height: 57px;
-  border: 1px solid #e8e8df;
-  background: #fffefa;
-  border-radius: 10px;
   padding: 8px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 3px;
-}
-.clef-option span {
-  font-size: 12px;
-  font-weight: 700;
-}
-.clef-option small {
-  font-size: 10px;
-  color: #87928c;
-}
-.clef-option.selected {
-  border-color: #76a79d;
-  background: #edf5f1;
-  color: #145e56;
-  box-shadow: inset 0 0 0 1px #76a79d;
 }
 .pitch-heading {
   display: flex;
@@ -360,28 +282,14 @@ body:has(.setup-panel[open]) {
 .pitch-heading h2 {
   margin: 0;
 }
-.pitch-count {
-  font-size: 11px;
-  color: #7e8982;
-}
 .preset-row {
   display: flex;
   gap: 5px;
   margin: 9px 0 12px;
 }
-.preset-row button {
-  border: 0;
-  background: #f0eee5;
-  border-radius: 6px;
-  padding: 6px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #61716a;
+.preset-row .btn {
+  padding-inline: 8px;
   min-height: 44px;
-}
-.preset-row button:hover {
-  background: #e7e5d9;
-  color: var(--ink);
 }
 .pitch-groups {
   display: flex;
@@ -396,8 +304,6 @@ body:has(.setup-panel[open]) {
 }
 .octave-label {
   width: 18px;
-  color: #929b94;
-  font-size: 11px;
   font-weight: 700;
   text-align: center;
 }
@@ -415,20 +321,6 @@ body:has(.setup-panel[open]) {
   min-height: 44px;
   flex: 1;
   max-width: none;
-  border: 1px solid #e9e8e0;
-  background: #fffefa;
-  border-radius: 8px;
-  color: #61716a;
-  font-size: 12px;
-  font-weight: 600;
-}
-.pitch-chip.chosen {
-  background: #e5f0ec;
-  border-color: #9ab9b0;
-  color: #165f57;
-}
-.pitch-chip:hover {
-  border-color: #77a59c;
 }
 .form-hint {
   margin: 7px 0 0;
@@ -436,33 +328,12 @@ body:has(.setup-panel[open]) {
   font-size: 11px;
 }
 .start-button {
-  min-height: 48px;
   width: 100%;
-  border: 0;
-  border-radius: 10px;
-  background: var(--teal);
-  color: white;
-  font-weight: 700;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
   justify-content: center;
   gap: 12px;
-  transition:
-    background 0.15s,
-    transform 0.15s;
 }
 .setup-panel > .start-button {
   margin-top: 18px;
-}
-.start-button:hover:not(:disabled),
-.got-it-button:hover {
-  background: var(--teal-dark);
-  transform: translateY(-1px);
-}
-.start-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 .start-button span {
   font-size: 19px;
@@ -564,39 +435,17 @@ body:has(.setup-panel[open]) {
 }
 .hear-button {
   min-height: 42px;
-  border: 1px solid #dfe7e1;
-  color: #386b62;
-  background: #f5f8f4;
-  border-radius: 8px;
   padding: 0 16px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
   gap: 8px;
 }
 .hear-button span {
   font-size: 17px;
-  color: #c29a4f;
-}
-.hear-button:hover {
-  background: #edf4ef;
-  border-color: #b8cec4;
 }
 .reveal-button {
   margin-top: 19px;
   min-height: 47px;
   width: min(100%, 310px);
-  border: 0;
-  border-radius: 9px;
-  color: white;
-  background: #176c65;
-  font-size: 14px;
-  font-weight: 700;
-}
-.reveal-button:hover {
-  background: #10564f;
 }
 .card-back {
   justify-content: flex-start;
@@ -642,24 +491,10 @@ body:has(.setup-panel[open]) {
   width: min(100%, 360px);
 }
 .grade-actions button {
-  min-height: 43px;
-  border-radius: 8px;
+  min-height: 44px;
   padding: 0 17px;
-  font-size: 12px;
-  font-weight: 700;
-}
-.again-button {
-  background: white;
-  border: 1px solid #dce4de;
-  color: #52736b;
-}
-.again-button:hover {
-  background: #f4f7f4;
 }
 .got-it-button {
-  border: 0;
-  background: #176c65;
-  color: white;
   min-width: 120px;
 }
 .sound-message {
@@ -827,20 +662,10 @@ body:has(.setup-panel[open]) {
   gap: 7px;
   margin: -5px 0 7px;
 }
-.selection-actions button {
-  border: 1px solid #e1e3da;
-  background: #fffefa;
-  border-radius: 7px;
+.selection-actions .btn {
   padding: 0 10px;
   min-height: 44px;
   min-width: 80px;
-  color: #68766f;
-  font-size: 11px;
-  font-weight: 600;
-}
-.selection-actions button:hover {
-  background: #edf4ef;
-  color: var(--ink);
 }
 .grade-hint {
   font-weight: 500;
