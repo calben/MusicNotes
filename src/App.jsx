@@ -28,6 +28,23 @@ const CLEFS = [
 function readSettings() {
   try {
     const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY));
+    const previousDefaultNotes = [
+      "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5",
+    ];
+    if (
+      saved?.noCrossingHands === undefined &&
+      saved?.clef === "treble" &&
+      Array.isArray(saved.notes) &&
+      saved.notes.length === previousDefaultNotes.length &&
+      previousDefaultNotes.every((id) => saved.notes.includes(id))
+    ) {
+      return normalizeSettings({
+        ...saved,
+        clef: DEFAULT_SETTINGS.clef,
+        notes: DEFAULT_SETTINGS.notes,
+        noCrossingHands: true,
+      });
+    }
     return normalizeSettings(saved || DEFAULT_SETTINGS);
   } catch {
     return normalizeSettings(DEFAULT_SETTINGS);
@@ -71,6 +88,9 @@ export default function App() {
 
   function setClef(clef) {
     setDraft((current) => ({ ...current, clef }));
+  }
+  function setNoCrossingHands(noCrossingHands) {
+    setDraft((current) => ({ ...current, noCrossingHands }));
   }
   function toggleNote(id) {
     setDraft((current) => ({
@@ -306,6 +326,20 @@ export default function App() {
               ))}
             </div>
           </fieldset>
+          {draft.clef === "both" && (
+            <label className="toggle-option">
+              <input
+                className="checkbox checkbox-lg"
+                type="checkbox"
+                checked={draft.noCrossingHands}
+                onChange={(event) => setNoCrossingHands(event.target.checked)}
+              />
+              <span>
+                <strong>No crossing hands</strong>
+                <small>Bass up to C4; treble from C4 and higher.</small>
+              </span>
+            </label>
+          )}
           <div className="pitch-heading">
             <div>
               <h2>Choose pitches</h2>
@@ -316,9 +350,7 @@ export default function App() {
             <button
               className="btn btn-outline"
               type="button"
-              onClick={() =>
-                choosePreset(["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"])
-              }
+              onClick={() => choosePreset([...DEFAULT_SETTINGS.notes])}
             >
               Starter
             </button>

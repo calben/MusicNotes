@@ -23,7 +23,8 @@ test("default settings select guided practice and retain the starter notes", () 
   assert.equal(DEFAULT_SETTINGS.choiceCount, 2);
   assert.equal("voice" in DEFAULT_SETTINGS, false);
   assert.equal(DEFAULT_SETTINGS.timed, false);
-  assert.equal(DEFAULT_SETTINGS.clef, "treble");
+  assert.equal(DEFAULT_SETTINGS.clef, "both");
+  assert.equal(DEFAULT_SETTINGS.noCrossingHands, true);
   assert.ok(DEFAULT_SETTINGS.notes.includes("C4"));
 });
 
@@ -55,11 +56,11 @@ test("malformed fields safely fall back while valid notes are retained", () => {
   });
 });
 
-test("card builder matches selected notes and expands both clefs", () => {
-  const cards = buildCards({ clef: "both", notes: ["C4", "A4"] });
+test("card builder keeps pitches on their side of middle C in both clefs", () => {
+  const cards = buildCards({ clef: "both", notes: ["B3", "C4", "D4"] });
   assert.deepEqual(
     cards.map(({ id }) => id),
-    ["treble-C4", "treble-A4", "bass-C4", "bass-A4"],
+    ["treble-C4", "treble-D4", "bass-B3", "bass-C4"],
   );
   assert.equal(cards[0].note.midi, 60);
   assert.deepEqual(

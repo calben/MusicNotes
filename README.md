@@ -17,7 +17,7 @@ Guided letters is the default. A round has five notes by default; choose 10 or a
 
 For piano-key answers, the selected pitch must match the note's octave as well as its letter. In Flashcards, **Again** puts a missed card at the end of the deck. Tap **Hear the note** or a piano key to hear a synthesized tone.
 
-Middle C is C4. The available natural-note range is C2 through C6. Practice setup lets you choose treble, bass, or both clefs and which notes to include. An all-notes round starts with each selected note once per selected clef; 5- and 10-note rounds draw from that selected set, cycling it when needed.
+Middle C is C4. The available natural-note range is C2 through C6. Practice setup lets you choose treble, bass, or both clefs and which notes to include. Both clefs is the default, with **No crossing hands** enabled: C4 can appear on either staff, lower pitches stay in bass, and higher pitches stay in treble. Turn that option off to allow any selected pitch on either staff. An all-notes round starts with each selected note once per selected clef; 5- and 10-note rounds draw from that selected set, cycling it when needed.
 
 ## Run locally
 

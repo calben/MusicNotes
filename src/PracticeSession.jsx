@@ -26,6 +26,7 @@ export default function PracticeSession({ settings, paused = false }) {
   const settingsKey = JSON.stringify([
     config.clef,
     config.notes,
+    config.noCrossingHands,
     config.mode,
     config.roundLength,
     config.choiceCount,

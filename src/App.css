@@ -123,6 +123,7 @@ body:has(.setup-panel[open]) {
   line-height: 1;
 }
 .setup-panel > .clef-fieldset,
+.setup-panel > .toggle-option,
 .setup-panel > .mode-fieldset,
 .setup-panel > .practice-options,
 .setup-panel > .pitch-heading,
@@ -590,6 +591,7 @@ body:has(.setup-panel[open]) {
     padding: 19px 17px 14px;
   }
   .setup-panel > .clef-fieldset,
+  .setup-panel > .toggle-option,
   .setup-panel > .mode-fieldset,
   .setup-panel > .practice-options,
   .setup-panel > .pitch-heading,

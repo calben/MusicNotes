@@ -43,8 +43,12 @@ export const PRACTICE_MODES = [
 ];
 
 export const DEFAULT_SETTINGS = Object.freeze({
-  clef: "treble",
-  notes: ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"],
+  clef: "both",
+  notes: [
+    "C3", "D3", "E3", "F3", "G3", "A3", "B3",
+    "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5",
+  ],
+  noCrossingHands: true,
   mode: "guided",
   roundLength: 5,
   choiceCount: 2,
@@ -63,6 +67,10 @@ export function normalizeSettings(value) {
   return {
     clef,
     notes: notes.length ? notes : [...DEFAULT_SETTINGS.notes],
+    noCrossingHands:
+      typeof value?.noCrossingHands === "boolean"
+        ? value.noCrossingHands
+        : DEFAULT_SETTINGS.noCrossingHands,
     mode: modes.includes(value?.mode) ? value.mode : DEFAULT_SETTINGS.mode,
     roundLength: [0, 5, 10].includes(value?.roundLength)
       ? value.roundLength
@@ -79,11 +87,19 @@ export function buildCards(settings) {
   const safe = normalizeSettings(settings);
   const clefs = safe.clef === "both" ? ["treble", "bass"] : [safe.clef];
   return clefs.flatMap((clef) =>
-    safe.notes.map((id) => ({
-      id: `${clef}-${id}`,
-      note: NOTE_BY_ID.get(id),
-      clef,
-    })),
+    safe.notes
+      .map((id) => NOTE_BY_ID.get(id))
+      .filter(
+        (note) =>
+          !safe.noCrossingHands ||
+          safe.clef !== "both" ||
+          (clef === "treble" ? note.midi >= 60 : note.midi <= 60),
+      )
+      .map((note) => ({
+        id: `${clef}-${note.id}`,
+        note,
+        clef,
+      })),
   );
 }
 
