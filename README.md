@@ -1,8 +1,23 @@
-# Music Notes Flashcards
+# Music Notes
 
-A small, touch-friendly music note flashcard app for practicing note reading on a tablet. It runs entirely in the browser; settings are saved on that device and there is no account or backend.
+A touch-friendly note-reading practice app for tablets. It runs in the browser and keeps settings on the current device; it has no account or backend.
 
 [Open Music Notes](https://calben.github.io/MusicNotes/)
+
+## Practice
+
+Choose one of four ways to answer a note:
+
+- **Flashcards** — reveal the written note's name and octave.
+- **Guided letters** — choose from two or three letter buttons, with an optional hint.
+- **All letters** — choose from A through G.
+- **Piano keys** — tap the matching pitch on the on-screen keyboard.
+
+Guided letters is the default. A round has five notes by default; choose 10 or all selected notes in Practice setup. Wrong answers stay on the current note until it is answered correctly. Guided letters offers increasing help automatically; in the other answer modes, use **Hint** when you want help. You can switch on the optional 60-second challenge for All letters or Piano keys; Guided letters always stays untimed. The challenge ends when time runs out or the selected round is complete. All letters and Piano keys show first-try accuracy and elapsed time when the round ends. Voice guidance is on by default and can be turned off; on-screen directions remain available if speech is unavailable.
+
+For piano-key answers, the selected pitch must match the note's octave as well as its letter. In Flashcards, **Again** puts a missed card at the end of the deck. Tap **Hear the note** or a piano key to hear a synthesized tone.
+
+Middle C is C4. The available natural-note range is C2 through C6. Practice setup lets you choose treble, bass, or both clefs and which notes to include. An all-notes round starts with each selected note once per selected clef; 5- and 10-note rounds draw from that selected set, cycling it when needed.
 
 ## Run locally
 
@@ -13,45 +28,34 @@ npm ci
 npm run dev
 ```
 
-Use the local URL printed by Vite. To make a production build, run `npm test` and `npm run build`; the static files are written to `dist/`.
+Use the local URL printed by Vite. Run `npm test` and `npm run build` to verify a production build; static files are written to `dist/`.
 
 ## GitHub Pages
 
-Push to `main` or run the **Deploy to GitHub Pages** workflow manually. In the repository's **Settings → Pages**, select **GitHub Actions** as the deployment source. The workflow builds and deploys `dist/`. Vite uses relative asset paths so the site works from a repository subpath as well as a custom domain.
+Push to `main` or run **Deploy to GitHub Pages** manually. In repository **Settings → Pages**, select **GitHub Actions** as the deployment source. The workflow tests, builds, and deploys `dist/`. Vite uses relative asset paths for repository subpaths and custom domains.
 
 ## Libraries
 
-| Library                                                           | Use                                                           |
-| ----------------------------------------------------------------- | ------------------------------------------------------------- |
-| [React](https://react.dev/)                                       | Interface and local app state                                 |
-| [VexFlow](https://www.vexflow.com/)                               | Render staff notation                                         |
-| [Tone.js](https://tonejs.github.io/)                              | Generate note playback in the browser, without remote samples |
-| [react-piano](https://github.com/kevinsqi/react-piano)            | On-screen keyboard                                            |
-| [react-card-flip](https://github.com/AaronCCWong/react-card-flip) | Card flip interaction                                         |
-| [lodash-es](https://lodash.com/)                                  | Deck shuffling                                                |
+| Library                                                           | Use                        |
+| ----------------------------------------------------------------- | -------------------------- |
+| [React](https://react.dev/)                                       | Interface and local state  |
+| [VexFlow](https://www.vexflow.com/)                               | Staff notation             |
+| [Tone.js](https://tonejs.github.io/)                              | Local synthesized playback |
+| [react-piano](https://github.com/kevinsqi/react-piano)            | On-screen keyboard         |
+| [react-card-flip](https://github.com/AaronCCWong/react-card-flip) | Flashcard flip             |
+| [lodash-es](https://lodash.com/)                                  | Shuffling                  |
 
-The quiz flow is intentionally local and lightweight; a full quiz framework would add little for this single deck-based practice loop.
+## Code map
 
-## Practice range
-
-Middle C is C4. The available natural-note range is C2 through C6. Open **Practice setup** in the header to choose treble, bass, or both clefs and the notes to include, then press **Start practice**. Setup stays in a dismissible side drawer so the flashcard can use the screen. Closing the drawer without starting keeps the current round. Reveal each answer to see its letter, octave, and highlighted piano key. **Again** returns a missed card to the end of the deck; **Got it** marks it complete. Tap **Hear the note** or any piano key to play a synthesized tone. Your selection is stored in browser local storage on the current device.
-
-The selectable quiz pitches are natural notes; black keys can be played on the answer keyboard. Each selected pitch appears on each selected clef, so choosing both clefs doubles the cards.
-
-## Verification
-
-`npm test` checks note/MIDI accuracy, saved-settings recovery, exact clef/pitch selection, shuffled-deck membership, and repeated piano input. Browser checks covered 1024 × 768 landscape and 768 × 1024 portrait, enlarged notation, note reveal, key highlighting and playback, retry/completion including one-card decks, saved settings, empty selections, and extreme ledger notes. Physical iPad/Safari testing remains a useful final device check.
-
-For a focused piano regression check, run `npm run dev` and open `/test/keyboard.html`. Each click or tap should append exactly one pitch to the event list, even when repeating the highlighted target or a black key. The touch simulation buttons exercise the component's native touch listeners and verify that compatibility mouse events are prevented. This fixture records callbacks without needing speakers and is excluded from the production build.
-
-Development screenshots are in [screenshots/](screenshots/). No remote font or sample requests are needed. The production JavaScript is approximately 504 kB gzipped, including the notation fonts and synthesizer.
+- `src/App.jsx` — setup, practice modes, rounds, and answer handling
+- `src/music.js` — note range, saved settings, notation data, and playback
+- `src/practice.js` — round creation and answer helpers
+- `src/PracticeSession.jsx` — guided choices, note-name drills, piano quizzes, and timing
+- `src/speech.js` — bundled Kokoro voice clips, with browser speech as a fallback
+- `src/Staff.jsx` and `src/Keyboard.jsx` — notation and piano-keyboard components
 
 ## License
 
 MIT. See [LICENSE](LICENSE).
 
-## Code map
-
-- `src/App.jsx` — settings, flashcard flow, and answer handling
-- `src/music.js` — note range, settings normalization, deck building, and playback
-- `src/Staff.jsx` and `src/Keyboard.jsx` — notation and piano-keyboard components
+The short voice prompts were generated locally with Kokoro's stock `af_heart` voice. Playback needs no speech server or model download. See [voice provenance and regeneration details](public/audio/README.md).

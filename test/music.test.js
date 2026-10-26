@@ -17,20 +17,42 @@ test("natural note range includes correct MIDI values for C4 and A4", () => {
   );
 });
 
-test("default settings select treble with the starter notes", () => {
+test("default settings select guided practice and retain the starter notes", () => {
+  assert.equal(DEFAULT_SETTINGS.mode, "guided");
+  assert.equal(DEFAULT_SETTINGS.roundLength, 5);
+  assert.equal(DEFAULT_SETTINGS.choiceCount, 2);
+  assert.equal(DEFAULT_SETTINGS.voice, true);
+  assert.equal(DEFAULT_SETTINGS.timed, false);
   assert.equal(DEFAULT_SETTINGS.clef, "treble");
   assert.ok(DEFAULT_SETTINGS.notes.includes("C4"));
 });
 
-test("settings reject invalid clefs and note ids, falling back safely", () => {
-  assert.deepEqual(normalizeSettings({ clef: "alto", notes: ["C4", "H9"] }), {
-    clef: "treble",
-    notes: ["C4"],
+test("old saved settings migrate while preserving clef and selected notes", () => {
+  const settings = normalizeSettings({ clef: "bass", notes: ["C3", "G3"] });
+
+  assert.deepEqual(settings, {
+    ...DEFAULT_SETTINGS,
+    clef: "bass",
+    notes: ["C3", "G3"],
   });
+});
+
+test("malformed fields safely fall back while valid notes are retained", () => {
+  const settings = normalizeSettings({
+    clef: "alto",
+    notes: ["C4", "H9", "C4"],
+    mode: "unknown",
+    roundLength: 7,
+    choiceCount: 4,
+    voice: "yes",
+    timed: 1,
+  });
+
+  assert.deepEqual(settings, { ...DEFAULT_SETTINGS, notes: ["C4"] });
   assert.deepEqual(normalizeSettings(null), DEFAULT_SETTINGS);
   assert.deepEqual(normalizeSettings({ clef: "bass", notes: ["H9"] }), {
+    ...DEFAULT_SETTINGS,
     clef: "bass",
-    notes: [...DEFAULT_SETTINGS.notes],
   });
 });
 
@@ -56,6 +78,7 @@ test("new deck keeps every card and avoids repeating the previous first card", (
     new Set(cards.map(({ id }) => id)),
   );
   assert.notEqual(first[0].id, cards[0].id);
+
   const single = newDeck(cards.slice(0, 1), cards[0].id);
   assert.equal(single[0].id, cards[0].id);
 });

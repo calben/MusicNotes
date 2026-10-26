@@ -6,13 +6,23 @@ import { createPianoInputProps } from "./music";
 const midiFor = (note) =>
   MidiNumbers.fromNote(`${note.letter.toLowerCase()}${note.octave}`);
 
-export default function Keyboard({ note, onPlay, showLabels = true }) {
+export default function Keyboard({
+  note,
+  onPlay,
+  showLabels = true,
+  highlightTarget = true,
+  rangeOverride,
+}) {
   const containerRef = useRef(null);
+  const scrollRef = useRef(null);
   const touchNotes = useRef(new Map());
   const [width, setWidth] = useState(320);
   const [pressed, setPressed] = useState([]);
   const targetMidi = note ? midiFor(note) : null;
   const range = useMemo(() => {
+    if (rangeOverride?.first != null && rangeOverride?.last != null) {
+      return { first: rangeOverride.first, last: rangeOverride.last };
+    }
     if (!targetMidi)
       return {
         first: MidiNumbers.fromNote("c4"),
@@ -23,7 +33,20 @@ export default function Keyboard({ note, onPlay, showLabels = true }) {
     const firstOctave = Math.max(2, Math.min(5, targetOctave));
     const first = MidiNumbers.fromNote(`c${firstOctave}`);
     return { first, last: first + 12 };
-  }, [targetMidi, note?.octave]);
+  }, [rangeOverride?.first, rangeOverride?.last, targetMidi, note?.octave]);
+  const pianoSizing = useMemo(() => {
+    let naturals = 0;
+    for (let midi = range.first; midi <= range.last; midi += 1) {
+      if (!MidiNumbers.getAttributes(midi).isAccidental) naturals += 1;
+    }
+    // Leave room for react-piano's borders and gaps around 44px touch targets.
+    const pianoWidth = Math.max(width, naturals * 46);
+    const naturalKeyWidth = pianoWidth / Math.max(1, naturals);
+    return {
+      pianoWidth,
+      keyWidthToHeight: Math.max(0.33, naturalKeyWidth / 170),
+    };
+  }, [range, width]);
 
   useEffect(() => {
     const host = containerRef.current;
@@ -46,14 +69,17 @@ export default function Keyboard({ note, onPlay, showLabels = true }) {
       key.dataset.midi = String(midi);
       key.setAttribute("role", "button");
       key.tabIndex = 0;
-      key.classList.toggle("music-keyboard__key-target", midi === targetMidi);
+      key.classList.toggle(
+        "music-keyboard__key-target",
+        highlightTarget && midi === targetMidi,
+      );
       key.classList.toggle(
         "music-keyboard__key-pressed",
         pressed.includes(midi),
       );
       key.setAttribute(
         "aria-label",
-        `${attrs.note}${attrs.note === "C4" ? ", Middle C" : ""}${midi === targetMidi ? ", selected target key" : ""}`,
+        `${attrs.note}${attrs.note === "C4" ? ", Middle C" : ""}${highlightTarget && midi === targetMidi ? ", selected target key" : ""}`,
       );
       key.setAttribute("aria-pressed", String(pressed.includes(midi)));
       const down = (event) => {
@@ -72,7 +98,7 @@ export default function Keyboard({ note, onPlay, showLabels = true }) {
       };
     });
     return () => keys.forEach((key) => key._musicKeyCleanup?.());
-  }, [range, width, targetMidi, showLabels, pressed]);
+  }, [range, width, targetMidi, showLabels, highlightTarget, pressed]);
 
   const play = useCallback(
     (midi) => {
@@ -145,26 +171,39 @@ export default function Keyboard({ note, onPlay, showLabels = true }) {
       ref={containerRef}
       aria-label="Piano keyboard"
     >
-      {targetMidi != null && (
+      {targetMidi != null && highlightTarget && (
         <span className="music-keyboard__target" aria-live="polite">
           {showLabels
             ? `Target key: ${note.id}${note.id === "C4" ? " · Middle C" : ""}`
             : "Target key highlighted"}
         </span>
       )}
-      <Piano
-        noteRange={range}
-        {...pianoInputProps}
-        width={width}
-        renderNoteLabel={({ midiNumber, isAccidental }) => {
-          if (isAccidental || !showLabels) return null;
-          const attrs = MidiNumbers.getAttributes(midiNumber);
-          return (
-            <span className="music-keyboard__key-label">{attrs.note}</span>
-          );
-        }}
-      />
-      {targetMidi != null && (
+      <div className="music-keyboard__scroll" ref={scrollRef}>
+        <Piano
+          noteRange={range}
+          {...pianoInputProps}
+          width={pianoSizing.pianoWidth}
+          keyWidthToHeight={pianoSizing.keyWidthToHeight}
+          renderNoteLabel={({ midiNumber, isAccidental }) => {
+            if (isAccidental || !showLabels) return null;
+            const attrs = MidiNumbers.getAttributes(midiNumber);
+            return (
+              <span className="music-keyboard__key-label">{attrs.note}</span>
+            );
+          }}
+        />
+      </div>
+      {pianoSizing.pianoWidth > width && (
+        <div className="music-keyboard__paging" aria-label="Keyboard navigation">
+          <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: -Math.max(264, width - 88) })}>
+            ← Lower keys
+          </button>
+          <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: Math.max(264, width - 88) })}>
+            Higher keys →
+          </button>
+        </div>
+      )}
+      {targetMidi != null && highlightTarget && (
         <span className="sr-only">Selected piano key: {note.id}</span>
       )}
     </div>

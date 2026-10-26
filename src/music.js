@@ -19,10 +19,37 @@ export const NOTES = Array.from({ length: 5 }, (_, octaveIndex) => {
   .filter((note) => note.midi <= 84);
 
 const NOTE_BY_ID = new Map(NOTES.map((note) => [note.id, note]));
+export const PRACTICE_MODES = [
+  {
+    id: "guided",
+    label: "Guided letters",
+    description: "Start with a small set of choices.",
+  },
+  {
+    id: "letters",
+    label: "All letters",
+    description: "Name each note from A to G.",
+  },
+  {
+    id: "keyboard",
+    label: "Piano keys",
+    description: "Find the exact pitch on a piano.",
+  },
+  {
+    id: "flashcards",
+    label: "Flashcards",
+    description: "Reveal each note and check yourself.",
+  },
+];
 
 export const DEFAULT_SETTINGS = Object.freeze({
   clef: "treble",
   notes: ["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"],
+  mode: "guided",
+  roundLength: 5,
+  choiceCount: 2,
+  voice: true,
+  timed: false,
 });
 
 export function normalizeSettings(value) {
@@ -33,9 +60,21 @@ export function normalizeSettings(value) {
   const notes = Array.isArray(value?.notes)
     ? [...new Set(value.notes.filter((id) => NOTE_BY_ID.has(id)))]
     : [];
+  const modes = PRACTICE_MODES.map((mode) => mode.id);
   return {
     clef,
     notes: notes.length ? notes : [...DEFAULT_SETTINGS.notes],
+    mode: modes.includes(value?.mode) ? value.mode : DEFAULT_SETTINGS.mode,
+    roundLength: [0, 5, 10].includes(value?.roundLength)
+      ? value.roundLength
+      : DEFAULT_SETTINGS.roundLength,
+    choiceCount: [2, 3].includes(value?.choiceCount)
+      ? value.choiceCount
+      : DEFAULT_SETTINGS.choiceCount,
+    voice:
+      typeof value?.voice === "boolean" ? value.voice : DEFAULT_SETTINGS.voice,
+    timed:
+      typeof value?.timed === "boolean" ? value.timed : DEFAULT_SETTINGS.timed,
   };
 }
 
@@ -75,6 +114,10 @@ export function createPianoInputProps(onPlay, onStop) {
     onPlayNoteInput: onPlay,
     onStopNoteInput: onStop,
   };
+}
+
+export function unlockAudio() {
+  return Tone.start();
 }
 
 export async function playNote(noteId) {

@@ -1,0 +1,470 @@
+.practice-session {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+}
+
+.practice-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.practice-progress {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.practice-progress__bar {
+  grid-column: 1 / -1;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #eeede5;
+}
+
+.practice-progress__bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gold);
+  transition: width 0.2s ease;
+}
+
+.practice-progress__dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.practice-progress__count {
+  color: #60756d;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.practice-progress__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #e3e4dc;
+  border: 1px solid #d5dad1;
+}
+
+.practice-progress__dot.completed {
+  background: #77a99b;
+  border-color: #77a99b;
+}
+
+.practice-progress__dot.current {
+  width: 12px;
+  height: 12px;
+  background: var(--gold);
+  border: 2px solid #fffefa;
+  box-shadow: 0 0 0 1px var(--gold);
+}
+
+.practice-instructions {
+  max-width: 660px;
+  margin: 0;
+  color: #65766f;
+  font-size: 16px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.practice-question-wrap {
+  width: 100%;
+  max-width: 700px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.practice-question {
+  width: 100%;
+  color: var(--ink);
+  font:
+    700 24px/1.2 "Manrope",
+    sans-serif;
+  letter-spacing: -0.035em;
+  margin: 2px 0;
+}
+
+.practice-play-note,
+.practice-hint,
+.practice-repeat {
+  font-family: "DM Sans", sans-serif;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.practice-question-wrap .practice-play-note,
+.practice-question-wrap .practice-hint {
+  min-height: 48px;
+}
+
+.practice-question-wrap .music-staff {
+  width: 100%;
+}
+
+.answer-choice {
+  position: relative;
+}
+
+.answer-check {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  color: #1c6c4f;
+  font:
+    700 16px/1 "DM Sans",
+    sans-serif;
+}
+
+.practice-choices {
+  width: min(100%, 680px);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 12px;
+  margin: 4px auto;
+}
+
+.answer-choice {
+  min-width: 96px;
+  min-height: 88px;
+  padding: 12px;
+  border: 2px solid #e0e6df;
+  border-radius: 13px;
+  background: #fffefa;
+  color: #175f58;
+  font:
+    800 clamp(28px, 4vw, 38px)/1 "Manrope",
+    sans-serif;
+  box-shadow: 0 5px 14px rgba(34, 65, 58, 0.05);
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.15s;
+}
+
+.answer-choice:hover:not(:disabled) {
+  border-color: #81aa9f;
+  background: #f3f8f3;
+  transform: translateY(-2px);
+}
+
+.answer-choice.correct,
+.answer-choice.highlighted {
+  border-color: #3f8978;
+  background: #e7f2ed;
+  color: #135d53;
+  box-shadow: inset 0 0 0 1px #3f8978;
+}
+
+.answer-choice.wrong {
+  border-color: #b76650;
+  background: #fbede8;
+  color: #863c2b;
+  box-shadow: inset 0 0 0 1px #b76650;
+}
+
+.answer-choice:disabled {
+  cursor: default;
+}
+
+.practice-session.mode-letters .practice-choices {
+  max-width: 520px;
+  grid-template-columns: repeat(4, minmax(64px, 1fr));
+  overflow-x: auto;
+}
+
+.practice-session.mode-letters .answer-choice {
+  min-width: 64px;
+  min-height: 64px;
+  padding: 8px;
+  font-size: 30px;
+}
+
+.practice-start-screen {
+  width: min(100%, 680px);
+  min-height: 380px;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  border: 1px solid #e7e5dc;
+  border-radius: 16px;
+  background: #fffefa;
+  text-align: center;
+}
+
+.practice-start-screen .practice-start {
+  min-width: 200px;
+  min-height: 80px;
+  font-size: 20px;
+}
+
+.practice-start-screen .practice-instructions {
+  flex: 0 0 auto;
+  text-align: center;
+}
+
+.practice-repeat,
+.practice-play-note,
+.practice-hint {
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid #dfe7e1;
+  border-radius: 8px;
+  background: #f5f8f4;
+  color: #386b62;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.practice-repeat {
+  min-width: 120px;
+  min-height: 48px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.practice-repeat:hover,
+.practice-play-note:hover,
+.practice-hint:hover {
+  background: #edf4ef;
+  border-color: #b8cec4;
+}
+
+.practice-speech-note {
+  min-height: 20px;
+  margin: 0;
+  color: #8a4b37;
+  font-size: 13px;
+}
+
+.practice-keyboard-help {
+  margin: 0;
+  color: #65766f;
+  font-size: 14px;
+}
+
+.practice-keyboard {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.practice-flashcard-answer {
+  margin: 0;
+  color: var(--teal);
+  font:
+    800 44px/1.1 "Manrope",
+    sans-serif;
+}
+
+.practice-again,
+.practice-got-it,
+.practice-finish {
+  min-width: 132px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.practice-again {
+  border: 1px solid #dfe6de;
+  background: #fffefa;
+  color: #386b62;
+}
+
+.practice-got-it,
+.practice-finish {
+  border: 0;
+  background: var(--teal);
+  color: #fff;
+}
+
+.practice-again:hover {
+  background: #edf4ef;
+}
+
+.practice-got-it:hover,
+.practice-finish:hover {
+  background: var(--teal-dark);
+}
+
+.practice-feedback.visible {
+  min-height: 26px;
+}
+
+.practice-actions-row {
+  width: min(100%, 520px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.practice-actions-row button,
+.practice-start {
+  min-width: 132px;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 9px;
+  background: var(--teal);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.practice-actions-row button:hover,
+.practice-start:hover {
+  background: var(--teal-dark);
+}
+
+.practice-actions-row button.secondary {
+  border: 1px solid #dfe6de;
+  background: #fffefa;
+  color: #386b62;
+}
+
+.practice-actions-row button.secondary:hover {
+  background: #edf4ef;
+}
+
+.practice-feedback {
+  min-height: 26px;
+  margin: 0;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.practice-feedback.correct {
+  color: #1c6c4f;
+}
+
+.practice-feedback.wrong {
+  color: #963f2d;
+}
+
+.practice-question-actions {
+  width: min(100%, 560px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.practice-timer {
+  color: #72592d;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.practice-complete {
+  width: min(100%, 680px);
+  min-height: 280px;
+  padding: 32px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  border: 1px solid #e7e5dc;
+  border-radius: 16px;
+  background: #fffefa;
+}
+
+.practice-summary {
+  margin: 0;
+  color: #65766f;
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.practice-start {
+  min-width: 200px;
+  min-height: 56px;
+}
+
+.practice-keyboard {
+  width: min(100%, 640px);
+  margin: 0 auto;
+}
+
+.practice-keyboard .music-keyboard__target {
+  color: #50665e;
+  font-size: 14px;
+  text-align: center;
+}
+
+.practice-hint {
+  margin: 0;
+  color: #6f7e77;
+  font-size: 14px;
+  text-align: center;
+}
+
+.practice-speech-note {
+  min-height: 20px;
+  color: #50665e;
+  font-size: 14px;
+  text-align: center;
+}
+
+@media (max-width: 650px) {
+  .practice-session {
+    gap: 10px;
+  }
+
+  .practice-instructions {
+    font-size: 14px;
+    text-align: center;
+  }
+
+  .practice-choices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .practice-question {
+    font-size: 22px;
+  }
+
+  .answer-choice {
+    min-width: 0;
+    min-height: 72px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .answer-choice {
+    transition: none;
+  }
+}

@@ -15,6 +15,13 @@
   min-width: 0;
 }
 
+.music-keyboard__scroll {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 .music-keyboard__target {
   display: block;
   margin: 0 0 0.5rem;
@@ -22,8 +29,24 @@
   font-weight: 600;
 }
 
+.music-keyboard__paging {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.music-keyboard__paging button {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #b8cec4;
+  border-radius: 8px;
+  background: #f5f8f4;
+  color: #173d3a;
+}
+
 .music-keyboard .ReactPiano__Keyboard {
-  max-width: 100%;
+  max-width: none;
 }
 
 .music-keyboard .ReactPiano__Key--active {

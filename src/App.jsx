@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import ReactCardFlipModule from "react-card-flip";
 import Staff from "./Staff";
 import Keyboard from "./Keyboard";
+import PracticeSession from "./PracticeSession";
 import {
   DEFAULT_SETTINGS,
   NOTES,
+  PRACTICE_MODES,
   buildCards,
   newDeck,
   normalizeSettings,
@@ -42,11 +44,13 @@ export default function App() {
   const [mastered, setMastered] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [soundError, setSoundError] = useState("");
+  const [setupOpen, setSetupOpen] = useState(false);
+  const [sessionKey, setSessionKey] = useState(0);
   const questionHeading = useRef(null);
   const answerHeading = useRef(null);
   const setupDialog = useRef(null);
   const card = deck[index];
-  const complete = index >= deck.length;
+  const complete = settings.mode === "flashcards" && index >= deck.length;
   const noteIds = useMemo(() => new Set(draft.notes), [draft.notes]);
   const octaves = [2, 3, 4, 5, 6];
   const reducedMotion =
@@ -91,6 +95,11 @@ export default function App() {
   function openSetup() {
     setDraft(settings);
     setupDialog.current?.showModal();
+    setSetupOpen(true);
+  }
+  function closeSetup() {
+    setSetupOpen(false);
+    setupDialog.current?.close();
   }
   function closeSetupFromBackdrop(event) {
     if (event.target !== event.currentTarget) return;
@@ -104,8 +113,13 @@ export default function App() {
       event.currentTarget.close();
   }
   function startPractice() {
+    if (draft.mode === "flashcards" && !draft.notes.length) return;
     if (!draft.notes.length) return;
-    const safe = normalizeSettings(draft);
+    const normalized = normalizeSettings(draft);
+    const safe = {
+      ...normalized,
+      timed: normalized.mode === "guided" ? false : normalized.timed,
+    };
     const cards = buildCards(safe);
     setSettings(safe);
     setDraft(safe);
@@ -115,7 +129,8 @@ export default function App() {
     setMastered(0);
     setFlipped(false);
     setSoundError("");
-    setupDialog.current?.close();
+    setSessionKey((current) => current + 1);
+    closeSetup();
   }
   function advance() {
     setFlipped(false);
@@ -171,6 +186,7 @@ export default function App() {
           className="setup-panel"
           aria-labelledby="setup-title"
           onClick={closeSetupFromBackdrop}
+          onClose={() => setSetupOpen(false)}
         >
           <div className="drawer-heading">
             <div className="setup-heading">
@@ -181,11 +197,115 @@ export default function App() {
               className="close-drawer"
               autoFocus
               aria-label="Close practice setup"
-              onClick={() => setupDialog.current?.close()}
+              onClick={closeSetup}
             >
               ×
             </button>
           </div>
+          <fieldset className="mode-fieldset">
+            <legend>Practice mode</legend>
+            <div className="mode-grid">
+              {PRACTICE_MODES.map((mode) => (
+                <button
+                  type="button"
+                  key={mode.id}
+                  className={`mode-option ${draft.mode === mode.id ? "selected" : ""}`}
+                  aria-pressed={draft.mode === mode.id}
+                  onClick={() =>
+                    setDraft((current) => ({
+                      ...current,
+                      mode: mode.id,
+                      ...(mode.id === "guided" ? { timed: false } : {}),
+                    }))
+                  }
+                >
+                  <span>{mode.label}</span>
+                  <small>{mode.description}</small>
+                </button>
+              ))}
+            </div>
+          </fieldset>
+          {draft.mode !== "flashcards" && (
+            <div className="practice-options">
+              {draft.mode === "guided" && (
+                <fieldset className="option-fieldset">
+                  <legend>Answer choices</legend>
+                  <div className="segmented-options">
+                    {[2, 3].map((choiceCount) => (
+                      <button
+                        type="button"
+                        key={choiceCount}
+                        aria-pressed={draft.choiceCount === choiceCount}
+                        className={
+                          draft.choiceCount === choiceCount ? "selected" : ""
+                        }
+                        onClick={() =>
+                          setDraft((current) => ({ ...current, choiceCount }))
+                        }
+                      >
+                        {choiceCount} choices
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+              )}
+              <fieldset className="option-fieldset">
+                <legend>Round length</legend>
+                <div className="segmented-options">
+                  {[5, 10, 0].map((length) => (
+                    <button
+                      type="button"
+                      key={length}
+                      aria-pressed={draft.roundLength === length}
+                      className={draft.roundLength === length ? "selected" : ""}
+                      onClick={() =>
+                        setDraft((current) => ({
+                          ...current,
+                          roundLength: length,
+                        }))
+                      }
+                    >
+                      {length === 0 ? "All notes" : `${length} notes`}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              {draft.mode !== "guided" && (
+                <label className="toggle-option">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(draft.timed)}
+                    onChange={(event) =>
+                      setDraft((current) => ({
+                        ...current,
+                        timed: event.target.checked,
+                      }))
+                    }
+                  />
+                  <span>
+                    <strong>60-second challenge</strong>
+                    <small>Finish the selected round within 60 seconds.</small>
+                  </span>
+                </label>
+              )}
+              <label className="toggle-option">
+                <input
+                  type="checkbox"
+                  checked={draft.voice !== false}
+                  onChange={(event) =>
+                    setDraft((current) => ({
+                      ...current,
+                      voice: event.target.checked,
+                    }))
+                  }
+                />
+                <span>
+                  <strong>Voice guidance</strong>
+                  <small>Hear the question read aloud.</small>
+                </span>
+              </label>
+            </div>
+          )}
           <fieldset className="clef-fieldset">
             <legend>Staff clef</legend>
             <div className="clef-options">
@@ -294,132 +414,160 @@ export default function App() {
           </button>
         </dialog>
 
-        <section className="practice-panel" aria-label="Note flashcards">
-          <div className="session-topline">
-            {!complete && (
-              <span className="progress-count">
-                {mastered}
-                <span> / {roundSize} mastered</span>
-              </span>
-            )}
-          </div>
-          {complete ? (
-            <div className="finish-card" role="status">
-              <h2>Practice complete</h2>
-              <p>
-                {roundSize} {roundSize === 1 ? "card" : "cards"} completed.
-              </p>
-              <button type="button" className="start-button" onClick={restart}>
-                Practice again <span aria-hidden="true">↻</span>
-              </button>
-            </div>
-          ) : card ? (
+        <section className="practice-panel" aria-label="Note practice">
+          {settings.mode !== "flashcards" ? (
+            <PracticeSession
+              key={sessionKey}
+              settings={settings}
+              paused={setupOpen}
+            />
+          ) : (
             <>
-              <div
-                className="progress-track"
-                role="progressbar"
-                aria-label="Cards mastered"
-                aria-valuemin="0"
-                aria-valuemax={roundSize}
-                aria-valuenow={mastered}
-              >
-                <span style={{ width: `${(mastered / roundSize) * 100}%` }} />
+              <div className="session-topline">
+                {!complete && (
+                  <span className="progress-count">
+                    {mastered}
+                    <span> / {roundSize} mastered</span>
+                  </span>
+                )}
               </div>
-              <div className="card-wrap">
-                <ReactCardFlip
-                  key={`${card.id}-${index}`}
-                  isFlipped={flipped}
-                  flipDirection="horizontal"
-                  flipSpeedFrontToBack={reducedMotion ? 0 : 0.6}
-                  flipSpeedBackToFront={reducedMotion ? 0 : 0.6}
-                  containerStyle={{ width: "100%" }}
-                >
-                  <article
-                    className="flashcard card-front"
-                    key="front"
-                    aria-hidden={flipped}
-                    inert={flipped ? "" : undefined}
+              {complete ? (
+                <div className="finish-card" role="status">
+                  <h2>Practice complete</h2>
+                  <p>
+                    {roundSize} {roundSize === 1 ? "card" : "cards"} completed.
+                  </p>
+                  <button
+                    type="button"
+                    className="start-button"
+                    onClick={restart}
                   >
-                    <div className="card-meta">
-                      <span className="clef-badge">
-                        {card.clef === "treble" ? "Treble clef" : "Bass clef"}
-                      </span>
-                    </div>
-                    <div className="staff-frame">
-                      <Staff note={card.note} clef={card.clef} hiddenLabel />
-                    </div>
-                    <h3 ref={questionHeading} tabIndex="-1">
-                      What note is this?
-                    </h3>
-                    <button
-                      type="button"
-                      className="hear-button"
-                      onClick={() => hear(card.note.id)}
-                    >
-                      <span aria-hidden="true">♪</span> Hear the note
-                    </button>
-                    <button
-                      type="button"
-                      className="reveal-button"
-                      onClick={() => {
-                        setFlipped(true);
-                        setSoundError("");
-                      }}
-                    >
-                      Reveal answer
-                    </button>
-                  </article>
-                  <article
-                    className="flashcard card-back"
-                    key="back"
-                    aria-hidden={!flipped}
-                    inert={!flipped ? "" : undefined}
+                    Practice again <span aria-hidden="true">↻</span>
+                  </button>
+                </div>
+              ) : card ? (
+                <>
+                  <div
+                    className="progress-track"
+                    role="progressbar"
+                    aria-label="Cards mastered"
+                    aria-valuemin="0"
+                    aria-valuemax={roundSize}
+                    aria-valuenow={mastered}
                   >
-                    <div className="card-meta">
-                      <span className="clef-badge">
-                        {card.clef === "treble" ? "Treble clef" : "Bass clef"}
-                      </span>
-                    </div>
-                    <h3 className="sr-only" ref={answerHeading} tabIndex="-1">
-                      Answer: {card.note.id}
-                    </h3>
-                    <div className="answer-note" aria-hidden="true">
-                      <span>{card.note.letter}</span>
-                      <small>octave {card.note.octave}</small>
-                    </div>
-                    <Keyboard note={card.note} onPlay={hear} showLabels />
-                    <button
-                      type="button"
-                      className="hear-button answer-hear"
-                      onClick={() => hear(card.note.id)}
+                    <span
+                      style={{ width: `${(mastered / roundSize) * 100}%` }}
+                    />
+                  </div>
+                  <div className="card-wrap">
+                    <ReactCardFlip
+                      key={`${card.id}-${index}`}
+                      isFlipped={flipped}
+                      flipDirection="horizontal"
+                      flipSpeedFrontToBack={reducedMotion ? 0 : 0.6}
+                      flipSpeedBackToFront={reducedMotion ? 0 : 0.6}
+                      containerStyle={{ width: "100%" }}
                     >
-                      <span aria-hidden="true">♪</span> Hear the note
-                    </button>
-                    <div className="grade-actions">
-                      <button
-                        type="button"
-                        className="again-button"
-                        onClick={retryCurrent}
+                      <article
+                        className="flashcard card-front"
+                        key="front"
+                        aria-hidden={flipped}
+                        inert={flipped ? "" : undefined}
                       >
-                        Again{" "}
-                        <span className="grade-hint">come back later</span>
-                      </button>
-                      <button
-                        type="button"
-                        className="got-it-button"
-                        onClick={advance}
+                        <div className="card-meta">
+                          <span className="clef-badge">
+                            {card.clef === "treble"
+                              ? "Treble clef"
+                              : "Bass clef"}
+                          </span>
+                        </div>
+                        <div className="staff-frame">
+                          <Staff
+                            note={card.note}
+                            clef={card.clef}
+                            hiddenLabel
+                          />
+                        </div>
+                        <h3 ref={questionHeading} tabIndex="-1">
+                          What note is this?
+                        </h3>
+                        <button
+                          type="button"
+                          className="hear-button"
+                          onClick={() => hear(card.note.id)}
+                        >
+                          <span aria-hidden="true">♪</span> Hear the note
+                        </button>
+                        <button
+                          type="button"
+                          className="reveal-button"
+                          onClick={() => {
+                            setFlipped(true);
+                            setSoundError("");
+                          }}
+                        >
+                          Reveal answer
+                        </button>
+                      </article>
+                      <article
+                        className="flashcard card-back"
+                        key="back"
+                        aria-hidden={!flipped}
+                        inert={!flipped ? "" : undefined}
                       >
-                        Got it <span aria-hidden="true">✓</span>
-                      </button>
-                    </div>
-                  </article>
-                </ReactCardFlip>
+                        <div className="card-meta">
+                          <span className="clef-badge">
+                            {card.clef === "treble"
+                              ? "Treble clef"
+                              : "Bass clef"}
+                          </span>
+                        </div>
+                        <h3
+                          className="sr-only"
+                          ref={answerHeading}
+                          tabIndex="-1"
+                        >
+                          Answer: {card.note.id}
+                        </h3>
+                        <div className="answer-note" aria-hidden="true">
+                          <span>{card.note.letter}</span>
+                          <small>octave {card.note.octave}</small>
+                        </div>
+                        <Keyboard note={card.note} onPlay={hear} showLabels />
+                        <button
+                          type="button"
+                          className="hear-button answer-hear"
+                          onClick={() => hear(card.note.id)}
+                        >
+                          <span aria-hidden="true">♪</span> Hear the note
+                        </button>
+                        <div className="grade-actions">
+                          <button
+                            type="button"
+                            className="again-button"
+                            onClick={retryCurrent}
+                          >
+                            Again{" "}
+                            <span className="grade-hint">come back later</span>
+                          </button>
+                          <button
+                            type="button"
+                            className="got-it-button"
+                            onClick={advance}
+                          >
+                            Got it <span aria-hidden="true">✓</span>
+                          </button>
+                        </div>
+                      </article>
+                    </ReactCardFlip>
+                  </div>
+                </>
+              ) : null}
+              <div className="sound-message" role="status" aria-live="polite">
+                {soundError}
               </div>
             </>
-          ) : null}
-          <div className="sound-message" role="status" aria-live="polite">
-            {soundError}
-          </div>
+          )}
         </section>
       </div>
       <footer className="page-footer">

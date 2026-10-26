@@ -2,7 +2,12 @@ import { useEffect, useRef } from "react";
 import { Formatter, Renderer, Stave, StaveNote, Voice } from "vexflow/bravura";
 
 /** A locally rendered, single-note staff. Hidden by default for quiz prompts. */
-export default function Staff({ note, clef = "treble", hiddenLabel = true }) {
+export default function Staff({
+  note,
+  clef = "treble",
+  hiddenLabel = true,
+  compact = false,
+}) {
   const hostRef = useRef(null);
 
   useEffect(() => {
@@ -18,7 +23,11 @@ export default function Staff({ note, clef = "treble", hiddenLabel = true }) {
       const referenceStep = clef === "bass" ? 2 * 7 + 4 : 4 * 7 + 2; // Bottom line: G2 bass, E4 treble.
       const noteY = 80 - (noteStep - referenceStep) * 5;
       const staveY = Math.max(20, 60 - noteY);
-      const logicalHeight = Math.max(170, staveY + 115, staveY + noteY + 25);
+      const logicalHeight = Math.max(
+        compact ? 140 : 170,
+        staveY + 115,
+        staveY + noteY + 25,
+      );
       host.replaceChildren();
       const renderer = new Renderer(host, Renderer.Backends.SVG);
       renderer.resize(width, Math.ceil(logicalHeight * scale));
@@ -78,7 +87,7 @@ export default function Staff({ note, clef = "treble", hiddenLabel = true }) {
       active = false;
       observer?.disconnect();
     };
-  }, [note, clef, hiddenLabel]);
+  }, [note, clef, hiddenLabel, compact]);
 
   return <div className="music-staff" ref={hostRef} />;
 }
