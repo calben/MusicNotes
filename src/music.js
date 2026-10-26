@@ -48,7 +48,6 @@ export const DEFAULT_SETTINGS = Object.freeze({
   mode: "guided",
   roundLength: 5,
   choiceCount: 2,
-  voice: true,
   timed: false,
 });
 
@@ -71,8 +70,6 @@ export function normalizeSettings(value) {
     choiceCount: [2, 3].includes(value?.choiceCount)
       ? value.choiceCount
       : DEFAULT_SETTINGS.choiceCount,
-    voice:
-      typeof value?.voice === "boolean" ? value.voice : DEFAULT_SETTINGS.voice,
     timed:
       typeof value?.timed === "boolean" ? value.timed : DEFAULT_SETTINGS.timed,
   };

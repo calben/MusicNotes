@@ -219,7 +219,6 @@
   text-align: center;
 }
 
-.practice-repeat,
 .practice-play-note,
 .practice-hint {
   min-height: 48px;
@@ -232,25 +231,10 @@
   font-weight: 700;
 }
 
-.practice-repeat {
-  min-width: 120px;
-  min-height: 48px;
-  padding: 0 14px;
-  font-size: 14px;
-}
-
-.practice-repeat:hover,
 .practice-play-note:hover,
 .practice-hint:hover {
   background: #edf4ef;
   border-color: #b8cec4;
-}
-
-.practice-speech-note {
-  min-height: 20px;
-  margin: 0;
-  color: #8a4b37;
-  font-size: 13px;
 }
 
 .practice-keyboard-help {
@@ -421,13 +405,6 @@
 .practice-hint {
   margin: 0;
   color: #6f7e77;
-  font-size: 14px;
-  text-align: center;
-}
-
-.practice-speech-note {
-  min-height: 20px;
-  color: #50665e;
   font-size: 14px;
   text-align: center;
 }

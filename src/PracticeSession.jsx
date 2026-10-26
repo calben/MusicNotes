@@ -13,7 +13,6 @@ import {
   getKeyboardRange,
   isAnswerCorrect,
 } from "./practice.js";
-import { cancelSpeech, isSpeechAvailable, speakText } from "./speech.js";
 import "./Practice.css";
 
 const LETTERS = ["A", "B", "C", "D", "E", "F", "G"];
@@ -22,12 +21,6 @@ const PROMPTS = {
   letters: "Choose the note name.",
   keyboard: "Tap the matching piano key.",
 };
-const REPEAT_PROMPTS = {
-  guided: "Name this note.",
-  letters: "Choose the note name.",
-  keyboard: "Find the matching piano key.",
-};
-
 export default function PracticeSession({ settings, paused = false }) {
   const config = useMemo(() => normalizeSettings(settings), [settings]);
   const settingsKey = JSON.stringify([
@@ -36,7 +29,6 @@ export default function PracticeSession({ settings, paused = false }) {
     config.mode,
     config.roundLength,
     config.choiceCount,
-    config.voice,
     config.timed,
   ]);
   const cards = useMemo(() => buildCards(config), [settingsKey]);
@@ -57,7 +49,6 @@ export default function PracticeSession({ settings, paused = false }) {
   const [attemptedQuestions, setAttemptedQuestions] = useState(0);
   const [elapsed, setElapsed] = useState(0);
   const [audioError, setAudioError] = useState("");
-  const [speechUnavailable, setSpeechUnavailable] = useState(false);
   const wrongRef = useRef(0);
   const hintedRef = useRef(false);
   const attemptedRef = useRef(false);
@@ -98,25 +89,16 @@ export default function PracticeSession({ settings, paused = false }) {
         unlockAudio().catch(() =>
           setAudioError("Sound could not start. Check your device audio."),
         );
-        setSpeechUnavailable(config.voice && !isSpeechAvailable());
-        speakText(REPEAT_PROMPTS[config.mode], config.voice);
       }
     },
-    [cards, config.mode, config.roundLength, config.voice],
+    [cards, config.roundLength],
   );
 
   useEffect(() => {
     if (settingsKeyRef.current === settingsKey) return;
     settingsKeyRef.current = settingsKey;
-    cancelSpeech();
     resetSession(false);
   }, [settingsKey, resetSession]);
-
-  useEffect(() => () => cancelSpeech(), []);
-
-  useEffect(() => {
-    if (paused) cancelSpeech();
-  }, [paused]);
 
   useEffect(() => {
     if (!live || paused) return undefined;
@@ -136,7 +118,6 @@ export default function PracticeSession({ settings, paused = false }) {
       phase === "complete"
     )
       return;
-    cancelSpeech();
     lockedRef.current = true;
     setFeedback("Time is up.");
     setFeedbackKind("info");
@@ -162,21 +143,18 @@ export default function PracticeSession({ settings, paused = false }) {
     setLastAnswerCorrect(false);
     if (index + 1 >= round.length) {
       setPhase("complete");
-      cancelSpeech();
       return;
     }
     setIndex((current) => current + 1);
     setPhase("question");
-    speakText(REPEAT_PROMPTS[config.mode], config.voice);
-  }, [config.mode, config.voice, index, round.length]);
+  }, [index, round.length]);
 
   useEffect(() => {
     if (phase !== "correct" || paused) return undefined;
-    // Leave time for the spoken letter before the next prompt replaces it.
-    const delay = config.mode === "guided" || config.voice ? 1400 : 600;
+    const delay = config.mode === "guided" ? 1400 : 600;
     const timer = window.setTimeout(nextCard, delay);
     return () => window.clearTimeout(timer);
-  }, [phase, paused, config.mode, config.voice, nextCard]);
+  }, [phase, paused, config.mode, nextCard]);
 
   const recordFirstAnswer = useCallback((correct) => {
     if (attemptedRef.current) return;
@@ -205,7 +183,6 @@ export default function PracticeSession({ settings, paused = false }) {
             setAudioError("Sound could not start. Check your device audio."),
           );
         }
-        speakText(card.note.letter, config.voice);
         return;
       }
       const nextWrong = wrongRef.current + 1;
@@ -217,7 +194,6 @@ export default function PracticeSession({ settings, paused = false }) {
         setSelectedAnswer("");
         setFeedback(`Tap ${card.note.letter} to continue.`);
         setFeedbackKind("wrong");
-        speakText(`Tap ${card.note.letter}.`, config.voice);
       } else {
         setFeedback(
           config.mode === "guided"
@@ -225,10 +201,9 @@ export default function PracticeSession({ settings, paused = false }) {
             : "Not quite. Try again, or use Hint.",
         );
         setFeedbackKind("wrong");
-        speakText("Try again.", config.voice);
       }
     },
-    [card, config.mode, config.voice, paused, phase, recordFirstAnswer],
+    [card, config.mode, paused, phase, recordFirstAnswer],
   );
 
   useEffect(() => {
@@ -279,8 +254,7 @@ export default function PracticeSession({ settings, paused = false }) {
         : `Tap ${card.note.letter}.`;
     setFeedback(instruction);
     setFeedbackKind("info");
-    speakText(instruction, config.voice);
-  }, [card, config.mode, config.voice, paused, phase]);
+  }, [card, config.mode, paused, phase]);
 
   const playQuestionNote = useCallback(() => {
     if (!card || paused) return;
@@ -302,7 +276,6 @@ export default function PracticeSession({ settings, paused = false }) {
 
   const finish = useCallback(() => {
     lockedRef.current = true;
-    cancelSpeech();
     setFeedback("");
     setPhase("idle");
     setElapsed(0);
@@ -329,11 +302,6 @@ export default function PracticeSession({ settings, paused = false }) {
           >
             Play
           </button>
-          {config.voice && speechUnavailable && (
-            <p className="practice-speech-note" role="status">
-              Speech is unavailable here. The practice controls still work.
-            </p>
-          )}
         </div>
       </div>
     );
@@ -492,31 +460,13 @@ export default function PracticeSession({ settings, paused = false }) {
             >
               Hint
             </button>
-            {config.voice && (
-              <button
-                type="button"
-                className="btn btn-accent practice-repeat"
-                onClick={() => {
-                  setSpeechUnavailable(!isSpeechAvailable());
-                  speakText(REPEAT_PROMPTS[config.mode], true);
-                }}
-                disabled={paused}
-                aria-label="Repeat prompt"
-              >
-                🔊 Repeat prompt
-              </button>
-            )}
           </div>
           <p
             className={`practice-feedback ${feedback ? "visible" : ""} ${feedbackKind}`}
             role="status"
             aria-live="polite"
           >
-            {feedback ||
-              audioError ||
-              (speechUnavailable && config.voice
-                ? "Speech is unavailable in this browser."
-                : "")}
+            {feedback || audioError}
           </p>
         </section>
       )}

@@ -21,7 +21,7 @@ test("default settings select guided practice and retain the starter notes", () 
   assert.equal(DEFAULT_SETTINGS.mode, "guided");
   assert.equal(DEFAULT_SETTINGS.roundLength, 5);
   assert.equal(DEFAULT_SETTINGS.choiceCount, 2);
-  assert.equal(DEFAULT_SETTINGS.voice, true);
+  assert.equal("voice" in DEFAULT_SETTINGS, false);
   assert.equal(DEFAULT_SETTINGS.timed, false);
   assert.equal(DEFAULT_SETTINGS.clef, "treble");
   assert.ok(DEFAULT_SETTINGS.notes.includes("C4"));
@@ -44,7 +44,6 @@ test("malformed fields safely fall back while valid notes are retained", () => {
     mode: "unknown",
     roundLength: 7,
     choiceCount: 4,
-    voice: "yes",
     timed: 1,
   });
 

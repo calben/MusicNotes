@@ -287,23 +287,6 @@ export default function App() {
                   </span>
                 </label>
               )}
-              <label className="toggle-option">
-                <input
-                  className="checkbox checkbox-lg"
-                  type="checkbox"
-                  checked={draft.voice !== false}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      voice: event.target.checked,
-                    }))
-                  }
-                />
-                <span>
-                  <strong>Voice guidance</strong>
-                  <small>Hear the question read aloud.</small>
-                </span>
-              </label>
             </div>
           )}
           <fieldset className="clef-fieldset">
