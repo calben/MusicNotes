@@ -381,9 +381,9 @@ export default function PracticeSession({ settings, paused = false }) {
       </div>
       {card && (
         <section className="practice-question-wrap" aria-label="Current note">
-          <span className="badge badge-primary clef-badge">
-            {card.clef === "treble" ? "Treble clef" : "Bass clef"}
-          </span>
+          {card.clef === "bass" && (
+            <span className="badge badge-primary clef-badge">Bass clef</span>
+          )}
           <Staff note={card.note} clef={card.clef} hiddenLabel compact />
           <h2 className="practice-question">{PROMPTS[config.mode]}</h2>
           {config.mode === "guided" && (

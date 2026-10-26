@@ -460,13 +460,13 @@ export default function App() {
                         aria-hidden={flipped}
                         inert={flipped ? "" : undefined}
                       >
-                        <div className="card-meta">
-                  <span className="badge badge-primary clef-badge">
-                            {card.clef === "treble"
-                              ? "Treble clef"
-                              : "Bass clef"}
-                          </span>
-                        </div>
+                        {card.clef === "bass" && (
+                          <div className="card-meta">
+                            <span className="badge badge-primary clef-badge">
+                              Bass clef
+                            </span>
+                          </div>
+                        )}
                         <div className="staff-frame">
                           <Staff
                             note={card.note}
@@ -501,13 +501,11 @@ export default function App() {
                         aria-hidden={!flipped}
                         inert={!flipped ? "" : undefined}
                       >
-                        <div className="card-meta">
-                          <span className="clef-badge">
-                            {card.clef === "treble"
-                              ? "Treble clef"
-                              : "Bass clef"}
-                          </span>
-                        </div>
+                        {card.clef === "bass" && (
+                          <div className="card-meta">
+                            <span className="clef-badge">Bass clef</span>
+                          </div>
+                        )}
                         <h3
                           className="sr-only"
                           ref={answerHeading}
