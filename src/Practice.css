@@ -138,21 +138,21 @@
 .practice-choices {
   width: min(100%, 680px);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   gap: 12px;
   margin: 4px auto;
 }
 
 .answer-choice {
-  min-width: 96px;
-  min-height: 88px;
-  padding: 12px;
+  min-width: 80px;
+  min-height: 72px;
+  padding: 8px;
   border: 2px solid #e0e6df;
   border-radius: 13px;
   background: #fffefa;
   color: #175f58;
   font:
-    800 clamp(28px, 4vw, 38px)/1 "Manrope",
+    800 clamp(24px, 3.5vw, 32px)/1 "Manrope",
     sans-serif;
   box-shadow: 0 5px 14px rgba(34, 65, 58, 0.05);
   transition:

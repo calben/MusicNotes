@@ -15,7 +15,7 @@ export default function Staff({
     if (!host || !note) return undefined;
     let observer;
     const draw = () => {
-      const scale = 1.6;
+      const scale = 2;
       const width = Math.max(240, Math.floor(host.clientWidth || 320));
       const logicalWidth = width / scale;
       const letterIndex = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
