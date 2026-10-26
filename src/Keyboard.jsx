@@ -195,10 +195,10 @@ export default function Keyboard({
       </div>
       {pianoSizing.pianoWidth > width && (
         <div className="music-keyboard__paging" aria-label="Keyboard navigation">
-          <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: -Math.max(264, width - 88) })}>
+          <button className="btn btn-outline" type="button" onClick={() => scrollRef.current?.scrollBy({ left: -Math.max(264, width - 88) })}>
             ← Lower keys
           </button>
-          <button type="button" onClick={() => scrollRef.current?.scrollBy({ left: Math.max(264, width - 88) })}>
+          <button className="btn btn-outline" type="button" onClick={() => scrollRef.current?.scrollBy({ left: Math.max(264, width - 88) })}>
             Higher keys →
           </button>
         </div>

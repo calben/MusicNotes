@@ -39,6 +39,8 @@ Push to `main` or run **Deploy to GitHub Pages** manually. In repository **Setti
 | Library                                                           | Use                        |
 | ----------------------------------------------------------------- | -------------------------- |
 | [React](https://react.dev/)                                       | Interface and local state  |
+| [daisyUI](https://daisyui.com/)                                    | Default light theme and UI components |
+| [Tailwind CSS](https://tailwindcss.com/)                            | daisyUI build integration through Vite |
 | [VexFlow](https://www.vexflow.com/)                               | Staff notation             |
 | [Tone.js](https://tonejs.github.io/)                              | Local synthesized playback |
 | [react-piano](https://github.com/kevinsqi/react-piano)            | On-screen keyboard         |
@@ -48,6 +50,8 @@ Push to `main` or run **Deploy to GitHub Pages** manually. In repository **Setti
 ## Code map
 
 - `src/App.jsx` — setup, practice modes, rounds, and answer handling
+- `src/theme.css` — Tailwind and daisyUI, using the default light theme
+- `src/daisy-overrides.css` — tablet sizing and note-reading accessibility adjustments
 - `src/music.js` — note range, saved settings, notation data, and playback
 - `src/practice.js` — round creation and answer helpers
 - `src/PracticeSession.jsx` — guided choices, note-name drills, piano quizzes, and timing

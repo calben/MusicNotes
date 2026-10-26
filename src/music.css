@@ -37,12 +37,9 @@
 }
 
 .music-keyboard__paging button {
+  /* daisyUI supplies the button theme; this file only sizes the key controls. */
   min-height: 44px;
   padding: 0 12px;
-  border: 1px solid #b8cec4;
-  border-radius: 8px;
-  background: #f5f8f4;
-  color: #173d3a;
 }
 
 .music-keyboard .ReactPiano__Keyboard {

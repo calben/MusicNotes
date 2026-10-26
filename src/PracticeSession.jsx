@@ -323,7 +323,7 @@ export default function PracticeSession({ settings, paused = false }) {
           <p className="practice-instructions">{PROMPTS[config.mode]}</p>
           <button
             type="button"
-            className="practice-start"
+            className="btn btn-primary btn-lg practice-start"
             onClick={start}
             disabled={paused || !round.length}
           >
@@ -356,13 +356,13 @@ export default function PracticeSession({ settings, paused = false }) {
           <div className="practice-actions-row">
             <button
               type="button"
-              className="practice-start"
+              className="btn btn-primary practice-start"
               onClick={replay}
               disabled={paused}
             >
               Play again
             </button>
-            <button type="button" className="practice-finish" onClick={finish}>
+            <button type="button" className="btn btn-outline practice-finish" onClick={finish}>
               Finish
             </button>
           </div>
@@ -394,7 +394,7 @@ export default function PracticeSession({ settings, paused = false }) {
         aria-valuemax={round.length}
         aria-valuenow={progress}
       >
-        <div className="practice-progress__bar">
+        <div className="progress progress-primary practice-progress__bar">
           <span style={{ width: `${(progress / round.length) * 100}%` }} />
         </div>
         {round.length <= 10 && (
@@ -413,7 +413,7 @@ export default function PracticeSession({ settings, paused = false }) {
       </div>
       {card && (
         <section className="practice-question-wrap" aria-label="Current note">
-          <span className="clef-badge">
+          <span className="badge badge-primary clef-badge">
             {card.clef === "treble" ? "Treble clef" : "Bass clef"}
           </span>
           <Staff note={card.note} clef={card.clef} hiddenLabel compact />
@@ -424,7 +424,7 @@ export default function PracticeSession({ settings, paused = false }) {
                 <button
                   type="button"
                   key={letter}
-                  className={`answer-choice ${selectedAnswer === letter && lastAnswerCorrect ? "correct" : ""} ${selectedAnswer === letter && !lastAnswerCorrect ? "wrong" : ""} ${showHint && letter === card.note.letter ? "highlighted" : ""}`}
+                  className={`btn btn-primary btn-lg answer-choice ${selectedAnswer === letter && lastAnswerCorrect ? "correct" : ""} ${selectedAnswer === letter && !lastAnswerCorrect ? "wrong" : ""} ${showHint && letter === card.note.letter ? "highlighted" : ""}`}
                   onClick={() => handleAnswer(letter)}
                   disabled={
                     paused ||
@@ -448,7 +448,7 @@ export default function PracticeSession({ settings, paused = false }) {
                 <button
                   type="button"
                   key={letter}
-                  className={`answer-choice ${selectedAnswer === letter && lastAnswerCorrect ? "correct" : ""} ${selectedAnswer === letter && !lastAnswerCorrect ? "wrong" : ""} ${showHint && letter === card.note.letter ? "highlighted" : ""}`}
+                  className={`btn btn-primary btn-lg answer-choice ${selectedAnswer === letter && lastAnswerCorrect ? "correct" : ""} ${selectedAnswer === letter && !lastAnswerCorrect ? "wrong" : ""} ${showHint && letter === card.note.letter ? "highlighted" : ""}`}
                   onClick={() => handleAnswer(letter)}
                   disabled={paused || phase === "correct"}
                 >
@@ -477,7 +477,7 @@ export default function PracticeSession({ settings, paused = false }) {
             {config.mode !== "keyboard" && (
               <button
                 type="button"
-                className="practice-play-note"
+                className="btn btn-outline practice-play-note"
                 onClick={playQuestionNote}
                 disabled={paused}
               >
@@ -486,7 +486,7 @@ export default function PracticeSession({ settings, paused = false }) {
             )}
             <button
               type="button"
-              className="practice-hint"
+              className="btn btn-secondary practice-hint"
               onClick={giveHint}
               disabled={paused || phase === "correct"}
             >
@@ -495,7 +495,7 @@ export default function PracticeSession({ settings, paused = false }) {
             {config.voice && (
               <button
                 type="button"
-                className="practice-repeat"
+                className="btn btn-accent practice-repeat"
                 onClick={() => {
                   setSpeechUnavailable(!isSpeechAvailable());
                   speakText(REPEAT_PROMPTS[config.mode], true);

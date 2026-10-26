@@ -174,7 +174,7 @@ export default function App() {
             music<span className="brand-light">notes</span>
           </span>
         </a>
-        <button type="button" className="settings-button" onClick={openSetup}>
+        <button type="button" className="btn btn-outline settings-button" onClick={openSetup}>
           <span aria-hidden="true">⚙</span> Practice setup
         </button>
       </header>
@@ -194,7 +194,7 @@ export default function App() {
             </div>
             <button
               type="button"
-              className="close-drawer"
+              className="btn btn-ghost close-drawer"
               autoFocus
               aria-label="Close practice setup"
               onClick={closeSetup}
@@ -209,7 +209,7 @@ export default function App() {
                 <button
                   type="button"
                   key={mode.id}
-                  className={`mode-option ${draft.mode === mode.id ? "selected" : ""}`}
+                  className={`btn mode-option ${draft.mode === mode.id ? "btn-primary selected" : "btn-outline"}`}
                   aria-pressed={draft.mode === mode.id}
                   onClick={() =>
                     setDraft((current) => ({
@@ -236,9 +236,7 @@ export default function App() {
                         type="button"
                         key={choiceCount}
                         aria-pressed={draft.choiceCount === choiceCount}
-                        className={
-                          draft.choiceCount === choiceCount ? "selected" : ""
-                        }
+                        className={`btn ${draft.choiceCount === choiceCount ? "btn-primary selected" : "btn-outline"}`}
                         onClick={() =>
                           setDraft((current) => ({ ...current, choiceCount }))
                         }
@@ -257,7 +255,7 @@ export default function App() {
                       type="button"
                       key={length}
                       aria-pressed={draft.roundLength === length}
-                      className={draft.roundLength === length ? "selected" : ""}
+                      className={`btn ${draft.roundLength === length ? "btn-primary selected" : "btn-outline"}`}
                       onClick={() =>
                         setDraft((current) => ({
                           ...current,
@@ -273,6 +271,7 @@ export default function App() {
               {draft.mode !== "guided" && (
                 <label className="toggle-option">
                   <input
+                    className="checkbox checkbox-lg"
                     type="checkbox"
                     checked={Boolean(draft.timed)}
                     onChange={(event) =>
@@ -290,6 +289,7 @@ export default function App() {
               )}
               <label className="toggle-option">
                 <input
+                  className="checkbox checkbox-lg"
                   type="checkbox"
                   checked={draft.voice !== false}
                   onChange={(event) =>
@@ -313,7 +313,7 @@ export default function App() {
                 <button
                   type="button"
                   key={id}
-                  className={`clef-option ${draft.clef === id ? "selected" : ""}`}
+                  className={`btn clef-option ${draft.clef === id ? "btn-primary selected" : "btn-outline"}`}
                   aria-pressed={draft.clef === id}
                   onClick={() => setClef(id)}
                 >
@@ -331,6 +331,7 @@ export default function App() {
           </div>
           <div className="preset-row" aria-label="Pitch presets">
             <button
+              className="btn btn-outline"
               type="button"
               onClick={() =>
                 choosePreset(["C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5"])
@@ -339,6 +340,7 @@ export default function App() {
               Starter
             </button>
             <button
+              className="btn btn-outline"
               type="button"
               onClick={() =>
                 choosePreset(
@@ -355,6 +357,7 @@ export default function App() {
               Treble staff
             </button>
             <button
+              className="btn btn-outline"
               type="button"
               onClick={() =>
                 choosePreset(
@@ -371,10 +374,10 @@ export default function App() {
             </button>
           </div>
           <div className="selection-actions">
-            <button type="button" onClick={selectAll}>
+            <button className="btn btn-outline" type="button" onClick={selectAll}>
               Select all
             </button>
-            <button type="button" onClick={clearSelection}>
+            <button className="btn btn-outline" type="button" onClick={clearSelection}>
               Clear
             </button>
           </div>
@@ -387,7 +390,7 @@ export default function App() {
                     <button
                       type="button"
                       key={note.id}
-                      className={`pitch-chip ${noteIds.has(note.id) ? "chosen" : ""}`}
+                      className={`btn pitch-chip ${noteIds.has(note.id) ? "btn-primary chosen" : "btn-outline"}`}
                       aria-pressed={noteIds.has(note.id)}
                       aria-label={`${note.id}${noteIds.has(note.id) ? ", selected" : ""}`}
                       onClick={() => toggleNote(note.id)}
@@ -406,7 +409,7 @@ export default function App() {
           )}
           <button
             type="button"
-            className="start-button"
+            className="btn btn-primary start-button"
             onClick={startPractice}
             disabled={!draft.notes.length}
           >
@@ -439,7 +442,7 @@ export default function App() {
                   </p>
                   <button
                     type="button"
-                    className="start-button"
+                    className="btn btn-primary start-button"
                     onClick={restart}
                   >
                     Practice again <span aria-hidden="true">↻</span>
@@ -475,7 +478,7 @@ export default function App() {
                         inert={flipped ? "" : undefined}
                       >
                         <div className="card-meta">
-                          <span className="clef-badge">
+                  <span className="badge badge-primary clef-badge">
                             {card.clef === "treble"
                               ? "Treble clef"
                               : "Bass clef"}
@@ -493,14 +496,14 @@ export default function App() {
                         </h3>
                         <button
                           type="button"
-                          className="hear-button"
+                          className="btn btn-outline hear-button"
                           onClick={() => hear(card.note.id)}
                         >
                           <span aria-hidden="true">♪</span> Hear the note
                         </button>
                         <button
                           type="button"
-                          className="reveal-button"
+                          className="btn btn-primary reveal-button"
                           onClick={() => {
                             setFlipped(true);
                             setSoundError("");
@@ -536,7 +539,7 @@ export default function App() {
                         <Keyboard note={card.note} onPlay={hear} showLabels />
                         <button
                           type="button"
-                          className="hear-button answer-hear"
+                          className="btn btn-outline hear-button answer-hear"
                           onClick={() => hear(card.note.id)}
                         >
                           <span aria-hidden="true">♪</span> Hear the note
@@ -544,7 +547,7 @@ export default function App() {
                         <div className="grade-actions">
                           <button
                             type="button"
-                            className="again-button"
+                            className="btn btn-outline again-button"
                             onClick={retryCurrent}
                           >
                             Again{" "}
@@ -552,7 +555,7 @@ export default function App() {
                           </button>
                           <button
                             type="button"
-                            className="got-it-button"
+                            className="btn btn-primary got-it-button"
                             onClick={advance}
                           >
                             Got it <span aria-hidden="true">✓</span>

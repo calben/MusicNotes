@@ -1,19 +1,19 @@
 :root {
   font-family: "DM Sans", sans-serif;
-  color: #173d3a;
-  background: #f6f3ea;
+  color: var(--color-base-content);
+  background: var(--color-base-200);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   font-optical-sizing: auto;
   font-weight: 400;
-  --ink: #173d3a;
-  --muted: #74827d;
-  --teal: #176c65;
-  --teal-dark: #10564f;
-  --gold: #d0a95d;
-  --paper: #fffefa;
-  --line: #e7e5dc;
-  --shadow: 0 18px 48px rgba(34, 65, 58, 0.08);
+  --ink: var(--color-base-content);
+  --muted: var(--color-neutral);
+  --teal: var(--color-primary);
+  --teal-dark: var(--color-primary);
+  --gold: var(--color-accent);
+  --paper: var(--color-base-100);
+  --line: var(--color-base-300);
+  --shadow: 0 18px 48px color-mix(in srgb, var(--color-neutral) 12%, transparent);
 }
 * {
   box-sizing: border-box;
@@ -22,13 +22,7 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background:
-    radial-gradient(
-      ellipse at 80% 8%,
-      rgba(220, 205, 160, 0.18),
-      transparent 33%
-    ),
-    #f6f3ea;
+  background: var(--color-base-200);
 }
 button {
   font: inherit;

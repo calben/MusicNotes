@@ -1,0 +1,97 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: var(--color-base-content);
+  background: var(--color-base-200);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --ink: var(--color-base-content);
+  --muted: var(--color-neutral);
+  --teal: var(--color-primary);
+  --teal-dark: var(--color-primary);
+  --gold: var(--color-accent);
+  --paper: var(--color-base-100);
+  --line: var(--color-base-300);
+  --shadow: 0 12px 32px color-mix(in srgb, var(--color-neutral) 12%, transparent);
+}
+
+body {
+  background: var(--color-base-200);
+  color: var(--color-base-content);
+}
+
+.app-shell { background: var(--color-base-200); }
+.site-header { border-color: var(--color-base-300); }
+.brand { color: var(--color-base-content); }
+.brand-mark { background: var(--color-primary); color: var(--color-primary-content); }
+.setup-panel, .practice-panel, .flashcard, .finish-card, .practice-start-screen, .practice-complete {
+  background: var(--color-base-100);
+  color: var(--color-base-content);
+  border-color: var(--color-base-300);
+  box-shadow: var(--shadow);
+}
+.setup-panel { border-radius: 1rem 0 0 1rem; }
+.setup-panel::backdrop { background: color-mix(in srgb, var(--color-neutral) 55%, transparent); }
+.drawer-heading { background: var(--color-base-100); border-color: var(--color-base-300); }
+.setup-heading h1, .flashcard h3, .finish-card h2 { color: var(--color-base-content); }
+.mode-option.selected, .clef-option.selected, .segmented-options button.selected, .pitch-chip.chosen {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-primary-content);
+  box-shadow: none;
+}
+.mode-option small, .clef-option small, .toggle-option small, .pitch-count, .octave-label { color: var(--color-neutral); }
+.toggle-option, .mode-option, .clef-option { background: var(--color-base-100); border-color: var(--color-base-300); color: var(--color-base-content); }
+.toggle-option input { accent-color: var(--color-primary); }
+.clef-badge { padding: .75rem 1rem; border: 0; font-size: .9rem; font-weight: 700; }
+.badge.badge-primary { background: var(--color-primary); color: var(--color-primary-content); }
+.staff-frame { width: min(100%, 760px); min-height: 185px; }
+.music-staff { color: var(--color-base-content); }
+.answer-note { color: var(--color-primary); }
+.answer-note small, .practice-summary, .finish-card p, .practice-instructions, .practice-keyboard-help { color: var(--color-neutral); }
+
+.btn { min-height: 3rem; font-size: 1rem; font-weight: 700; }
+.btn.btn-primary { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-primary-content); }
+.btn.btn-secondary { background: var(--color-secondary); border-color: var(--color-secondary); color: var(--color-secondary-content); }
+.btn.btn-accent { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-accent-content); }
+.settings-button { padding-inline: 1rem; }
+.mode-fieldset legend, .option-fieldset legend, .clef-fieldset legend, .pitch-heading h2 { font-size: 1rem; }
+.mode-option > span, .toggle-option strong, .clef-option > span { font-size: 1rem; }
+.mode-option small, .toggle-option small, .clef-option small { font-size: .875rem; line-height: 1.35; }
+.segmented-options .btn, .preset-row .btn, .selection-actions .btn { font-size: .95rem; }
+.pitch-chip.btn { font-size: 1rem; }
+.octave-label, .pitch-count { font-size: .875rem; }
+.mode-option { min-height: 5rem; text-align: left; align-items: flex-start; white-space: normal; }
+.mode-option.btn-primary small { color: var(--color-primary-content); }
+.segmented-options { gap: .5rem; }
+.segmented-options .btn, .clef-option.btn { min-height: 3.5rem; }
+.preset-row, .selection-actions { gap: .5rem; }
+.preset-row .btn, .selection-actions .btn { min-height: 2.75rem; }
+.pitch-chip.btn { height: 2.75rem; min-width: 2.75rem; min-height: 2.75rem; flex: 1; max-width: none; }
+.start-button { width: 100%; }
+.answer-choice.btn { min-width: 6rem; min-height: 5.5rem; border-width: 2px; border-radius: 1rem; font-size: clamp(2.25rem, 5vw, 3.25rem); }
+.answer-choice.btn.correct, .answer-choice.btn.highlighted { background: var(--color-success); border-color: var(--color-success); color: var(--color-success-content); box-shadow: inset 0 0 0 2px var(--color-success-content); }
+.answer-choice.btn.wrong { background: var(--color-error); border-color: var(--color-error); color: var(--color-error-content); }
+.practice-question { color: var(--color-base-content); font-family: inherit; letter-spacing: 0; }
+.practice-feedback { color: var(--color-base-content); }
+.practice-feedback.correct { color: var(--color-success-content); }
+.practice-feedback.wrong { color: var(--color-error); }
+.practice-progress__bar { background: var(--color-base-300); border-radius: 999px; }
+.practice-progress__bar span { background: var(--color-primary); border-radius: inherit; }
+.practice-progress__dot { background: var(--color-base-300); border-color: var(--color-base-300); }
+.practice-progress__dot.completed { background: var(--color-success); border-color: var(--color-success); }
+.practice-progress__dot.current { background: var(--color-primary); box-shadow: 0 0 0 1px var(--color-primary); border-color: var(--color-base-100); }
+.practice-progress__count, .progress-count, .practice-timer { color: var(--color-base-content); }
+.practice-play-note, .practice-hint, .practice-repeat { min-height: 3rem; }
+.practice-actions-row .btn, .practice-start.btn { min-width: 8.5rem; min-height: 3.5rem; }
+.practice-start-screen .practice-start.btn { min-width: 12rem; min-height: 5rem; font-size: 1.25rem; }
+.practice-question-actions { gap: .75rem; }
+.practice-feedback.correct { font-weight: 800; }
+.practice-feedback.wrong { font-weight: 800; }
+.form-hint, .sound-message { color: var(--color-error); }
+.page-footer { color: var(--color-neutral); }
+
+@media (max-width: 650px) {
+  .staff-frame { min-height: 160px; }
+  .answer-choice.btn { min-height: 4.5rem; }
+  .pitch-chip.btn { min-width: 2.75rem; }
+}
