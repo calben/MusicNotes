@@ -4,8 +4,11 @@ import {
   NOTES,
   DEFAULT_SETTINGS,
   normalizeSettings,
+  migrateSettings,
+  DEFAULT_QUESTION_TYPES,
   buildCards,
   newDeck,
+  keyboardRangeForNote,
 } from "../src/music.js";
 
 test("natural note range includes correct MIDI values for C4 and A4", () => {
@@ -17,12 +20,25 @@ test("natural note range includes correct MIDI values for C4 and A4", () => {
   );
 });
 
-test("default settings select guided practice and retain the starter notes", () => {
-  assert.equal(DEFAULT_SETTINGS.mode, "guided");
+test("every pitch fits a C-to-E keyboard with C, D, E in both octaves", () => {
+  for (const note of NOTES) {
+    const range = keyboardRangeForNote(note);
+    assert.equal(range.last - range.first, 16);
+    assert.ok(range.first <= note.midi && range.last >= note.midi);
+    assert.ok(range.first >= 36 && range.last <= 88);
+  }
+  assert.deepEqual(keyboardRangeForNote(NOTES[0]), { first: 36, last: 52 });
+  assert.deepEqual(keyboardRangeForNote(NOTES.at(-1)), { first: 72, last: 88 });
+});
+
+test("default settings select choice practice and retain the starter notes", () => {
+  assert.equal(DEFAULT_SETTINGS.mode, "choice");
   assert.equal(DEFAULT_SETTINGS.roundLength, 5);
   assert.equal(DEFAULT_SETTINGS.choiceCount, 2);
   assert.equal("voice" in DEFAULT_SETTINGS, false);
-  assert.equal(DEFAULT_SETTINGS.timed, false);
+  assert.equal("autoVoiceDirections" in DEFAULT_SETTINGS, false);
+  assert.equal("autoVoiceDirections" in normalizeSettings({ autoVoiceDirections: true }), false);
+  assert.equal("timed" in DEFAULT_SETTINGS, false);
   assert.equal(DEFAULT_SETTINGS.clef, "both");
   assert.equal(DEFAULT_SETTINGS.noCrossingHands, true);
   assert.ok(DEFAULT_SETTINGS.notes.includes("C4"));
@@ -50,10 +66,35 @@ test("malformed fields safely fall back while valid notes are retained", () => {
 
   assert.deepEqual(settings, { ...DEFAULT_SETTINGS, notes: ["C4"] });
   assert.deepEqual(normalizeSettings(null), DEFAULT_SETTINGS);
+  assert.equal("timed" in normalizeSettings({ mode: "choice", timed: true }), false);
   assert.deepEqual(normalizeSettings({ clef: "bass", notes: ["H9"] }), {
     ...DEFAULT_SETTINGS,
     clef: "bass",
   });
+});
+
+test("question selections normalize, preserve valid choices, and migrate old saves", () => {
+  assert.deepEqual(DEFAULT_SETTINGS.questionTypes, [...DEFAULT_QUESTION_TYPES]);
+  assert.deepEqual(
+    normalizeSettings({ questionTypes: ["letters", "unknown", "letters"] })
+      .questionTypes,
+    ["letters"],
+  );
+  assert.deepEqual(
+    normalizeSettings({ questionTypes: [] }).questionTypes,
+    [...DEFAULT_QUESTION_TYPES],
+  );
+  assert.deepEqual(
+    migrateSettings({ clef: "bass", notes: ["C3"], mode: "mixed", mixedQuestionTypes: ["letters", "keyboard"] })
+      .questionTypes,
+    ["letters", "keyboard"],
+  );
+  const timedLegacy = migrateSettings({ mode: "keyboard", timed: true });
+  assert.deepEqual(timedLegacy.questionTypes, ["keyboard"]);
+  assert.equal("timed" in timedLegacy, false);
+  assert.deepEqual(migrateSettings({ mode: "keyboard", mixedQuestionTypes: ["guided", "letters"] }).questionTypes, ["keyboard"]);
+  assert.equal(timedLegacy.mode, "choice");
+  assert.equal(migrateSettings({ mode: "flashcards" }).mode, "flashcards");
 });
 
 test("card builder keeps pitches on their side of middle C in both clefs", () => {

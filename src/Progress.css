@@ -1,0 +1,28 @@
+.header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.parent-progress > p,
+.parent-progress > button,
+.parent-progress__section {
+  margin: 20px 24px;
+}
+
+.parent-progress__section h3 {
+  font-size: 1.1rem;
+  margin: 0 0 8px;
+}
+
+.parent-progress__table {
+  width: 100%;
+  font-size: 0.95rem;
+}
+
+.parent-progress__table th,
+.parent-progress__table td {
+  white-space: normal;
+}

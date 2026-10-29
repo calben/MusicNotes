@@ -1,317 +1,229 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+} from "react";
 import Staff from "./Staff";
+import SymbolNotation from "./SymbolNotation";
+import { SYMBOLS, symbolAnswerLabel } from "./symbols.js";
 import Keyboard from "./Keyboard";
 import {
-  buildCards,
+  isChoiceMode,
+  LETTERS,
   normalizeSettings,
-  playNote,
-  unlockAudio,
+  PRACTICE_MODES,
 } from "./music.js";
+import { playNote, unlockAudio } from "./audio.js";
 import {
   answerChoices,
+  buildPracticeCards,
   createRound,
-  getKeyboardRange,
   isAnswerCorrect,
 } from "./practice.js";
+import { completedCount, createSession, sessionReducer } from "./session.js";
+import { saveOutcomes } from "./progress.js";
 import "./Practice.css";
 
-const LETTERS = ["A", "B", "C", "D", "E", "F", "G"];
-const PROMPTS = {
-  guided: "Tap the letter that names this note.",
-  letters: "Choose the note name.",
-  keyboard: "Tap the matching piano key.",
-  "keyboard-letters": "Tap the letter for the highlighted piano key.",
-};
-export default function PracticeSession({ settings, paused = false }) {
-  const config = useMemo(() => normalizeSettings(settings), [settings]);
-  const settingsKey = JSON.stringify([
-    config.clef,
-    config.notes,
-    config.noCrossingHands,
-    config.mode,
-    config.roundLength,
-    config.choiceCount,
-    config.timed,
-  ]);
-  const cards = useMemo(() => {
-    const built = buildCards(config);
-    if (config.mode !== "keyboard-letters") return built;
-    return [...new Map(built.map((item) => [item.note.id, item])).values()];
-  }, [settingsKey]);
-  const keyboardRange = useMemo(() => getKeyboardRange(cards), [cards]);
-  const [round, setRound] = useState(() =>
-    createRound(cards, config.roundLength),
+function LetterChoices({ letters, state, paused, onAnswer, card }) {
+  return (
+    <div
+      className={`practice-choices ${state.mode === "letters" ? "practice-choices--letters" : ""} ${card?.kind === "symbol" ? "practice-choices--symbols" : ""}`}
+    >
+      {letters.map((letter) => {
+        const selected = String(state.selectedAnswer).toUpperCase() === String(letter).toUpperCase();
+        const correct = selected && state.phase === "correct";
+        const variant = correct
+          ? "btn-success"
+          : selected
+            ? "btn-error"
+            : "btn-primary";
+        const blocked = paused || state.phase === "correct";
+        if (correct) {
+          return (
+            <span key={letter} className="btn btn-lg answer-choice btn-success">
+              {card?.kind === "symbol" ? (
+                card.quizMode === "symbol-name" && card.symbol.category === "dynamics"
+                  ? (SYMBOLS.find(({ id }) => id === letter)?.description ?? symbolAnswerLabel(letter, card.quizMode))
+                  : symbolAnswerLabel(letter, card.quizMode)
+              ) : letter}
+              <span className="answer-check" aria-hidden="true">
+                ✓
+              </span>
+            </span>
+          );
+        }
+        return (
+          <button
+            type="button"
+            key={letter}
+            className={`btn btn-lg answer-choice ${variant}`}
+            onClick={() => onAnswer(letter)}
+            disabled={blocked}
+          >
+            {card?.kind === "symbol" ? (
+              card.quizMode === "symbol-name" && card.symbol.category === "dynamics"
+                ? (SYMBOLS.find(({ id }) => id === letter)?.description ?? symbolAnswerLabel(letter, card.quizMode))
+                : symbolAnswerLabel(letter, card.quizMode)
+            ) : letter}
+          </button>
+        );
+      })}
+    </div>
   );
-  const [index, setIndex] = useState(0);
-  const [phase, setPhase] = useState("idle");
-  const [wrongCount, setWrongCount] = useState(0);
-  const [showHint, setShowHint] = useState(false);
-  const [feedback, setFeedback] = useState("");
-  const [feedbackKind, setFeedbackKind] = useState("");
-  const [selectedAnswer, setSelectedAnswer] = useState("");
-  const [lastAnswerCorrect, setLastAnswerCorrect] = useState(false);
-  const [completed, setCompleted] = useState(0);
-  const [firstTryCorrect, setFirstTryCorrect] = useState(0);
-  const [attemptedQuestions, setAttemptedQuestions] = useState(0);
-  const [elapsed, setElapsed] = useState(0);
-  const [audioError, setAudioError] = useState("");
-  const wrongRef = useRef(0);
-  const hintedRef = useRef(false);
-  const attemptedRef = useRef(false);
-  const lockedRef = useRef(false);
-  const settingsKeyRef = useRef(settingsKey);
+}
 
+// App remounts this component when a parent applies a new configuration.
+export default function PracticeSession({ settings, paused = false, onStart }) {
+  const config = useMemo(() => normalizeSettings(settings), [settings]);
+  const cards = useMemo(() => buildPracticeCards(config), [config]);
+  const [state, dispatch] = useReducer(sessionReducer, null, () =>
+    createSession(createRound(cards, config.roundLength), config),
+  );
+  const savedOutcomeCount = useRef(0);
+  const [audioError, setAudioError] = useState("");
+  const {
+    round,
+    index,
+    phase,
+    feedback,
+    feedbackKind,
+    firstTryCorrect,
+    attemptedQuestions,
+    elapsed,
+  } = state;
   const card = round[index];
+  const quizMode = card?.quizMode ?? config.mode;
+  const prompt = card?.kind === "symbol"
+    ? quizMode === "symbol-beats"
+      ? "How many beats does this symbol receive in 4/4?"
+      : card.symbol.category === "dynamics"
+        ? "What does this dynamic mean?"
+        : "What is this symbol called?"
+    :
+    PRACTICE_MODES.find(({ id }) => id === quizMode)?.prompt ??
+    "Follow the prompt and answer the question.";
   const choices = useMemo(
     () => answerChoices(card, config.choiceCount, cards),
     [card, index, config.choiceCount, cards],
   );
-  const live = phase !== "idle" && phase !== "complete";
-  const choiceMode = ["guided", "keyboard-letters"].includes(config.mode);
-  const forcedAnswer = choiceMode && wrongCount >= 2;
-  const hintRevealsTarget = showHint || phase === "correct";
+  const choiceMode = isChoiceMode(quizMode);
+  const live = phase === "question" || phase === "correct";
 
-  const resetSession = useCallback(
-    (startImmediately = false) => {
-      setRound(createRound(cards, config.roundLength));
-      setIndex(0);
-      setPhase(startImmediately ? "question" : "idle");
-      setWrongCount(0);
-      wrongRef.current = 0;
-      setShowHint(false);
-      hintedRef.current = false;
-      attemptedRef.current = false;
-      lockedRef.current = false;
-      setFeedback("");
-      setFeedbackKind("");
-      setSelectedAnswer("");
-      setLastAnswerCorrect(false);
-      setCompleted(0);
-      setFirstTryCorrect(0);
-      setAttemptedQuestions(0);
-      setElapsed(0);
-      setAudioError("");
-      if (startImmediately) {
-        setAudioError("");
-        unlockAudio().catch(() =>
-          setAudioError("Sound could not start. Check your device audio."),
-        );
-      }
-    },
-    [cards, config.roundLength],
-  );
-
-  useEffect(() => {
-    if (settingsKeyRef.current === settingsKey) return;
-    settingsKeyRef.current = settingsKey;
-    resetSession(false);
-  }, [settingsKey, resetSession]);
-
-  useEffect(() => {
-    if (!live || paused) return undefined;
-    const timer = window.setInterval(
-      () => setElapsed((seconds) => seconds + 1),
-      1000,
+  const hear = useCallback((noteId) => {
+    setAudioError("");
+    playNote(noteId).catch(() =>
+      setAudioError("Sound could not start. Check your device audio."),
     );
+  }, []);
+
+  useEffect(() => {
+    const newOutcomes = state.outcomes.slice(savedOutcomeCount.current);
+    if (newOutcomes.length) saveOutcomes(newOutcomes);
+    savedOutcomeCount.current = state.outcomes.length;
+  }, [state.outcomes]);
+
+  useEffect(() => {
+    if (!live || paused) return;
+    const timer = window.setInterval(() => dispatch({ type: "tick" }), 1000);
     return () => window.clearInterval(timer);
   }, [live, paused]);
 
   useEffect(() => {
-    if (
-      config.mode === "guided" ||
-      !config.timed ||
-      elapsed < 60 ||
-      phase === "idle" ||
-      phase === "complete"
-    )
-      return;
-    lockedRef.current = true;
-    setFeedback("Time is up.");
-    setFeedbackKind("info");
-    setPhase("complete");
-  }, [config.mode, config.timed, elapsed, phase]);
-
-  const start = useCallback(() => {
-    if (paused || !round.length) return;
-    resetSession(true);
-  }, [paused, resetSession, round.length]);
-
-  const nextCard = useCallback(() => {
-    lockedRef.current = false;
-    wrongRef.current = 0;
-    hintedRef.current = false;
-    attemptedRef.current = false;
-    setWrongCount(0);
-    setShowHint(false);
-    setAudioError("");
-    setFeedback("");
-    setFeedbackKind("");
-    setSelectedAnswer("");
-    setLastAnswerCorrect(false);
-    if (index + 1 >= round.length) {
-      setPhase("complete");
-      return;
-    }
-    setIndex((current) => current + 1);
-    setPhase("question");
-  }, [index, round.length]);
-
-  useEffect(() => {
-    if (phase !== "correct" || paused) return undefined;
-    const delay = config.mode === "guided" ? 1400 : 600;
-    const timer = window.setTimeout(nextCard, delay);
+    if (phase !== "correct" || paused) return;
+    const timer = window.setTimeout(
+      () => dispatch({ type: "next" }),
+      quizMode === "guided" ? 1400 : 600,
+    );
     return () => window.clearTimeout(timer);
-  }, [phase, paused, config.mode, nextCard]);
+  }, [phase, paused, quizMode]);
 
-  const recordFirstAnswer = useCallback((correct) => {
-    if (attemptedRef.current) return;
-    attemptedRef.current = true;
-    setAttemptedQuestions((count) => count + 1);
-    if (correct && !hintedRef.current && wrongRef.current === 0) {
-      setFirstTryCorrect((count) => count + 1);
-    }
-  }, []);
-
+  const start = () => {
+    if (paused || !cards.length) return;
+    onStart?.();
+    setAudioError("");
+    savedOutcomeCount.current = 0;
+    const nextRound = createRound(cards, config.roundLength);
+    unlockAudio().catch(() =>
+      setAudioError("Sound could not start. Check your device audio."),
+    );
+    dispatch({
+      type: "start",
+      round: nextRound,
+      settings: config,
+    });
+  };
   const handleAnswer = useCallback(
     (answer) => {
-      if (!card || phase !== "question" || lockedRef.current || paused) return;
-      const correct = isAnswerCorrect(card, answer, config.mode);
-      setSelectedAnswer(String(answer).toUpperCase());
-      setLastAnswerCorrect(correct);
-      recordFirstAnswer(correct);
-      if (correct) {
-        lockedRef.current = true;
-        setCompleted((count) => count + 1);
-        setFeedback(`${card.note.letter} is correct.`);
-        setFeedbackKind("correct");
-        setPhase("correct");
-        if (config.mode !== "keyboard") {
-          playNote(card.note.id).catch(() =>
-            setAudioError("Sound could not start. Check your device audio."),
-          );
-        }
-        return;
+      if (paused || phase !== "question") return;
+      if (isAnswerCorrect(card, answer, quizMode)) {
+        if (card.kind !== "symbol" && quizMode !== "keyboard") hear(card.note.id);
       }
-      const nextWrong = wrongRef.current + 1;
-      wrongRef.current = nextWrong;
-      setWrongCount(nextWrong);
-      if (choiceMode && nextWrong >= 2) {
-        setShowHint(true);
-        hintedRef.current = true;
-        setSelectedAnswer("");
-        setFeedback(`Tap ${card.note.letter} to continue.`);
-        setFeedbackKind("wrong");
-      } else {
-        setFeedback(
-          choiceMode
-            ? "Try once more."
-            : "Not quite. Try again, or use Hint.",
-        );
-        setFeedbackKind("wrong");
-      }
+      dispatch({ type: "answer", answer });
     },
-    [card, choiceMode, config.mode, paused, phase, recordFirstAnswer],
+    [paused, phase, card, quizMode, hear],
   );
+  const playQuestionNote = () => {
+    if (!paused && card) hear(card.note.id);
+  };
+  const handleKeyboardPreview = useCallback(
+    (noteId) => {
+      if (!paused && phase === "question") hear(noteId);
+    },
+    [paused, phase, hear],
+  );
+  const handleKeyboardPlay = (noteId) => {
+    if (paused || phase !== "question") return;
+    hear(noteId);
+    handleAnswer(noteId);
+  };
+  const finish = () => dispatch({ type: "finish" });
+  const replay = start;
 
   useEffect(() => {
-    if (phase !== "question" || paused || config.mode === "keyboard") {
-      return undefined;
-    }
-    const availableLetters =
-      choiceMode
-        ? forcedAnswer
-          ? [card?.note?.letter]
-          : choices
-        : LETTERS;
-    const handleLetterKey = (event) => {
+    if (phase !== "question" || paused || quizMode === "keyboard" || card?.kind === "symbol") return;
+    const available = choiceMode ? choices : LETTERS;
+    const onKey = (event) => {
       if (event.ctrlKey || event.metaKey || event.altKey || event.repeat)
         return;
       if (document.querySelector("dialog[open]")) return;
-      const target = event.target;
       if (
-        target instanceof Element &&
-        target.closest("input, textarea, select, [contenteditable='true']")
-      ) {
+        event.target instanceof Element &&
+        event.target.closest(
+          "input, textarea, select, [contenteditable='true']",
+        )
+      )
         return;
-      }
       const letter = event.key.toUpperCase();
-      if (!/^[A-G]$/.test(letter) || !availableLetters.includes(letter)) return;
+      if (!available.includes(letter)) return;
       event.preventDefault();
       handleAnswer(letter);
     };
-    window.addEventListener("keydown", handleLetterKey);
-    return () => window.removeEventListener("keydown", handleLetterKey);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [
-    card?.note?.letter,
-    choices,
-    choiceMode,
-    config.mode,
-    forcedAnswer,
-    handleAnswer,
-    paused,
     phase,
+    paused,
+    quizMode,
+    choiceMode,
+    card,
+    choices,
+    handleAnswer,
   ]);
 
-  const giveHint = useCallback(() => {
-    if (!card || phase !== "question" || paused) return;
-    hintedRef.current = true;
-    setShowHint(true);
-    const instruction =
-      config.mode === "keyboard"
-        ? "Tap the highlighted key."
-        : `Tap ${card.note.letter}.`;
-    setFeedback(instruction);
-    setFeedbackKind("info");
-  }, [card, config.mode, paused, phase]);
-
-  const playQuestionNote = useCallback(() => {
-    if (!card || paused) return;
-    playNote(card.note.id).catch(() =>
-      setAudioError("Sound could not start. Check your device audio."),
-    );
-  }, [card, paused]);
-
-  const handleKeyboardPlay = useCallback(
-    (noteId) => {
-      if (!card || paused) return;
-      playNote(noteId).catch(() =>
-        setAudioError("Sound could not start. Check your device audio."),
-      );
-      handleAnswer(noteId);
-    },
-    [card, handleAnswer, paused],
-  );
-
-  const handleKeyboardPreview = useCallback(
-    (noteId) => {
-      if (paused) return;
-      playNote(noteId).catch(() =>
-        setAudioError("Sound could not start. Check your device audio."),
-      );
-    },
-    [paused],
-  );
-
-  const finish = useCallback(() => {
-    lockedRef.current = true;
-    setFeedback("");
-    setPhase("idle");
-    setElapsed(0);
-  }, []);
-
-  const replay = useCallback(() => resetSession(true), [resetSession]);
-
+  const completed = completedCount(state);
   const accuracy = attemptedQuestions
     ? Math.round((firstTryCorrect / attemptedQuestions) * 100)
     : 0;
-  const progress = Math.min(completed, round.length);
-  const remaining = Math.max(0, 60 - elapsed);
+  const progress = completed;
 
   if (phase === "idle") {
     return (
       <div className={`practice-session mode-${config.mode}`}>
         <div className="practice-start-screen">
-          <p className="practice-instructions">{PROMPTS[config.mode]}</p>
+          <p className="practice-instructions">{prompt}</p>
           <button
             type="button"
             className="btn btn-primary btn-lg practice-start"
@@ -331,9 +243,9 @@ export default function PracticeSession({ settings, paused = false }) {
       <div className={`practice-session mode-${config.mode}`}>
         <div className="practice-complete" role="status">
           <h2>
-            {completed} {completed === 1 ? "note" : "notes"} completed
+            {completed} {completed === 1 ? "question" : "questions"} completed
           </h2>
-          {config.mode !== "guided" && (
+          {config.mode === "choice" && (
             <p className="practice-summary">
               First-try accuracy: {accuracy}% ({firstTryCorrect} of{" "}
               {attemptedQuestions} attempted). Time: {timeText}.
@@ -348,7 +260,11 @@ export default function PracticeSession({ settings, paused = false }) {
             >
               Play again
             </button>
-            <button type="button" className="btn btn-outline practice-finish" onClick={finish}>
+            <button
+              type="button"
+              className="btn btn-outline practice-finish"
+              onClick={finish}
+            >
               Finish
             </button>
           </div>
@@ -357,21 +273,10 @@ export default function PracticeSession({ settings, paused = false }) {
     );
   }
 
-  const revealTarget = config.mode === "keyboard" && hintRevealsTarget;
+  const revealTarget = quizMode === "keyboard" && phase === "correct";
 
   return (
     <div className={`practice-session mode-${config.mode}`}>
-      {config.mode !== "guided" && config.timed && (
-        <header className="practice-header">
-          <span
-            className="practice-timer"
-            role="timer"
-            aria-label={`${remaining} seconds remaining`}
-          >
-            {remaining}s
-          </span>
-        </header>
-      )}
       <div
         className="practice-progress"
         role="progressbar"
@@ -398,82 +303,58 @@ export default function PracticeSession({ settings, paused = false }) {
         </span>
       </div>
       {card && (
-        <section className="practice-question-wrap" aria-label="Current note">
-          {config.mode !== "keyboard-letters" && card.clef === "bass" && (
-            <span className="badge badge-primary clef-badge">Bass clef</span>
-          )}
-          {config.mode === "keyboard-letters" ? (
+        <section className="practice-question-wrap" aria-label={card.kind === "symbol" ? "Current musical symbol" : "Current note"} data-quiz-mode={quizMode}>
+          <div className="practice-prompt-slot">
+            <h2 className="practice-question">{prompt}</h2>
+          </div>
+          <div className="practice-stimulus-slot">
+          {card.kind === "symbol" ? (
+            <SymbolNotation symbol={card.symbol} />
+          ) : quizMode === "keyboard-letters" ? (
             <div className="practice-keyboard">
               <Keyboard
                 note={card.note}
                 onPlay={handleKeyboardPreview}
                 showLabels={false}
                 highlightTarget
-                rangeOverride={keyboardRange}
               />
             </div>
           ) : (
-            <Staff note={card.note} clef={card.clef} hiddenLabel compact />
-          )}
-          <h2 className="practice-question">{PROMPTS[config.mode]}</h2>
-          {choiceMode && (
-            <div className="practice-choices">
-              {choices.map((letter) => (
-                <button
-                  type="button"
-                  key={letter}
-                  className={`btn btn-lg answer-choice ${selectedAnswer === letter ? (lastAnswerCorrect ? "btn-success" : "btn-error") : showHint && letter === card.note.letter ? "btn-success" : "btn-primary"}`}
-                  onClick={() => handleAnswer(letter)}
-                  disabled={
-                    paused ||
-                    phase === "correct" ||
-                    (forcedAnswer && letter !== card.note.letter)
-                  }
-                >
-                  {letter}
-                  {selectedAnswer === letter && lastAnswerCorrect && (
-                    <span className="answer-check" aria-label="Correct">
-                      ✓
-                    </span>
-                  )}
-                </button>
-              ))}
+            <div className="practice-notation">
+              {card.clef === "bass" && (
+                <span className="badge badge-primary clef-badge">
+                  Bass clef
+                </span>
+              )}
+              <Staff note={card.note} clef={card.clef} hiddenLabel compact />
             </div>
           )}
-          {config.mode === "letters" && (
-            <div className="practice-choices practice-choices--letters">
-              {LETTERS.map((letter) => (
-                <button
-                  type="button"
-                  key={letter}
-                  className={`btn btn-lg answer-choice ${selectedAnswer === letter ? (lastAnswerCorrect ? "btn-success" : "btn-error") : showHint && letter === card.note.letter ? "btn-success" : "btn-primary"}`}
-                  onClick={() => handleAnswer(letter)}
-                  disabled={paused || phase === "correct"}
-                >
-                  {letter}
-                  {selectedAnswer === letter && lastAnswerCorrect && (
-                    <span className="answer-check" aria-label="Correct">
-                      ✓
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
+          </div>
+          <div className="practice-answer-slot">
+          {(choiceMode || quizMode === "letters" || card.kind === "symbol") && (
+            <LetterChoices
+              letters={choiceMode || card.kind === "symbol" ? choices : LETTERS}
+            state={{ ...state, mode: quizMode }}
+              paused={paused}
+              onAnswer={handleAnswer}
+              card={card}
+            />
           )}
-          {config.mode === "keyboard" && (
+          </div>
+          <div className="practice-interaction-slot">
+          {quizMode === "keyboard" && (
             <div className="practice-keyboard">
               <Keyboard
                 note={card.note}
                 onPlay={handleKeyboardPlay}
                 showLabels
                 highlightTarget={revealTarget}
-                rangeOverride={keyboardRange}
               />
             </div>
           )}
-          <div className="practice-question-actions">
-            {config.mode !== "keyboard" &&
-              config.mode !== "keyboard-letters" && (
+          </div>
+          {card.kind !== "symbol" && quizMode !== "keyboard" && quizMode !== "keyboard-letters" && (
+            <div className="practice-question-actions">
               <button
                 type="button"
                 className="btn btn-outline practice-play-note"
@@ -482,23 +363,20 @@ export default function PracticeSession({ settings, paused = false }) {
               >
                 Hear note
               </button>
-            )}
-            <button
-              type="button"
-              className="btn btn-secondary practice-hint"
-              onClick={giveHint}
-              disabled={paused || phase === "correct"}
-            >
-              Hint
-            </button>
-          </div>
+            </div>
+          )}
           <p
             className={`practice-feedback ${feedback ? "visible" : ""} ${feedbackKind === "correct" ? "text-success" : feedbackKind === "wrong" ? "text-error" : ""}`}
             role="status"
             aria-live="polite"
           >
-            {feedback || audioError}
+            {feedback}
           </p>
+          {audioError && (
+            <p className="sound-message" role="status">
+              {audioError}
+            </p>
+          )}
         </section>
       )}
     </div>

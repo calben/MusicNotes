@@ -1,78 +1,71 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import ReactCardFlipModule from "react-card-flip";
-import Staff from "./Staff";
-import Keyboard from "./Keyboard";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Flashcards from "./Flashcards";
 import PracticeSession from "./PracticeSession";
+import Progress from "./Progress.jsx";
+import dragon1 from "./assets/map-dragon-ink.png";
+import dragon2 from "./assets/map-dragon-ink-2.png";
+import dragon3 from "./assets/map-dragon-ink-3.png";
+import dragon4 from "./assets/map-dragon-ink-4.png";
+import dragon5 from "./assets/map-dragon-ink-5.png";
 import {
+  CHOICE_COUNTS,
   DEFAULT_SETTINGS,
+  QUESTION_TYPES,
+  isChoiceMode,
+  migrateSettings,
   NOTES,
-  PRACTICE_MODES,
-  buildCards,
-  newDeck,
+  NOTE_PRESETS,
+  PRACTICE_FORMATS,
+  ROUND_LENGTHS,
   normalizeSettings,
-  playNote,
-} from "./music";
+} from "./music.js";
+import { SYMBOLS, SYMBOL_CATEGORIES } from "./symbols.js";
+import SymbolNotation from "./SymbolNotation";
 import "./App.css";
-
-// The package publishes CommonJS `exports.default`; Vite 8 may expose either
-// the component or its nested default depending on the optimize path.
-const ReactCardFlip = ReactCardFlipModule.default ?? ReactCardFlipModule;
+import "./map-theme.css";
 
 const STORAGE_KEY = "music-notes-settings-v1";
+const DRAGONS = [dragon1, dragon2, dragon3, dragon4, dragon5];
+const DRAGON_COUNT = DRAGONS.length;
 const CLEFS = [
   { id: "treble", name: "Treble", hint: "Higher notes" },
   { id: "bass", name: "Bass", hint: "Lower notes" },
   { id: "both", name: "Both", hint: "Treble + bass" },
 ];
+const octaves = [2, 3, 4, 5, 6];
+const QUESTION_TYPE_LABELS = {
+  guided: "Guided letters",
+  letters: "All letters",
+  keyboard: "Piano keys",
+  "keyboard-letters": "Keyboard to letter",
+};
 
 function readSettings() {
   try {
-    const saved = JSON.parse(window.localStorage.getItem(STORAGE_KEY));
-    const previousDefaultNotes = [
-      "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5",
-    ];
-    if (
-      saved?.noCrossingHands === undefined &&
-      saved?.clef === "treble" &&
-      Array.isArray(saved.notes) &&
-      saved.notes.length === previousDefaultNotes.length &&
-      previousDefaultNotes.every((id) => saved.notes.includes(id))
-    ) {
-      return normalizeSettings({
-        ...saved,
-        clef: DEFAULT_SETTINGS.clef,
-        notes: DEFAULT_SETTINGS.notes,
-        noCrossingHands: true,
-      });
-    }
-    return normalizeSettings(saved || DEFAULT_SETTINGS);
+    return migrateSettings(
+      JSON.parse(window.localStorage.getItem(STORAGE_KEY)),
+    );
   } catch {
     return normalizeSettings(DEFAULT_SETTINGS);
   }
 }
 
 export default function App() {
-  const initial = useMemo(readSettings, []);
-  const [draft, setDraft] = useState(initial);
-  const [settings, setSettings] = useState(initial);
-  const [deck, setDeck] = useState(() => newDeck(buildCards(initial)));
-  const [index, setIndex] = useState(0);
-  const [roundSize, setRoundSize] = useState(() => buildCards(initial).length);
-  const [mastered, setMastered] = useState(0);
-  const [flipped, setFlipped] = useState(false);
-  const [soundError, setSoundError] = useState("");
+  const [settings, setSettings] = useState(readSettings);
+  const [dragonIndex, setDragonIndex] = useState(
+    () => Math.floor(Math.random() * DRAGON_COUNT) + 1,
+  );
+  const [draft, setDraft] = useState(settings);
   const [setupOpen, setSetupOpen] = useState(false);
+  const [progressOpen, setProgressOpen] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState(() => new Set());
   const [sessionKey, setSessionKey] = useState(0);
-  const questionHeading = useRef(null);
-  const answerHeading = useRef(null);
   const setupDialog = useRef(null);
-  const card = deck[index];
-  const complete = settings.mode === "flashcards" && index >= deck.length;
   const noteIds = useMemo(() => new Set(draft.notes), [draft.notes]);
-  const octaves = [2, 3, 4, 5, 6];
-  const reducedMotion =
-    typeof window !== "undefined" &&
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  const chooseAnotherDragon = useCallback(() => {
+    const offset = 1 + Math.floor(Math.random() * (DRAGON_COUNT - 1));
+    setDragonIndex((current) => ((current - 1 + offset) % DRAGON_COUNT) + 1);
+  }, []);
 
   useEffect(() => {
     try {
@@ -81,10 +74,6 @@ export default function App() {
       /* Storage may be disabled. */
     }
   }, [settings]);
-  useEffect(() => {
-    if (index > 0 || flipped)
-      (flipped ? answerHeading : questionHeading).current?.focus();
-  }, [index, flipped]);
 
   function setClef(clef) {
     setDraft((current) => ({ ...current, clef }));
@@ -92,33 +81,53 @@ export default function App() {
   function setNoCrossingHands(noCrossingHands) {
     setDraft((current) => ({ ...current, noCrossingHands }));
   }
+  function toggleQuestionType(type) {
+    setDraft((current) => {
+      const selected = current.questionTypes.includes(type);
+      if (selected && current.questionTypes.length === 1) return current;
+      return {
+        ...current,
+        questionTypes: selected
+          ? current.questionTypes.filter((item) => item !== type)
+          : [...current.questionTypes, type],
+      };
+    });
+  }
   function toggleNote(id) {
     setDraft((current) => ({
       ...current,
       notes: current.notes.includes(id)
-        ? current.notes.filter((n) => n !== id)
+        ? current.notes.filter((note) => note !== id)
         : [...current.notes, id],
     }));
   }
   function choosePreset(notes) {
-    setDraft((current) => ({ ...current, notes }));
+    setDraft((current) => ({ ...current, notes: [...notes] }));
   }
   function selectAll() {
-    setDraft((current) => ({
-      ...current,
-      notes: NOTES.map((note) => note.id),
-    }));
+    choosePreset(NOTES.map(({ id }) => id));
   }
   function clearSelection() {
-    setDraft((current) => ({ ...current, notes: [] }));
+    choosePreset([]);
   }
   function openSetup() {
     setDraft(settings);
     setupDialog.current?.showModal();
     setSetupOpen(true);
   }
+  function practiceWeakNotes(notes, modes, symbolIds = []) {
+    const noteModes = modes.filter((mode) => QUESTION_TYPES.includes(mode));
+    setDraft({
+      ...settings,
+      notes,
+      symbolIds,
+      mode: settings.mode,
+      questionTypes: noteModes.length ? noteModes : settings.questionTypes,
+    });
+    setupDialog.current?.showModal();
+    setSetupOpen(true);
+  }
   function closeSetup() {
-    setSetupOpen(false);
     setupDialog.current?.close();
   }
   function closeSetupFromBackdrop(event) {
@@ -129,58 +138,52 @@ export default function App() {
       event.clientX > rect.right ||
       event.clientY < rect.top ||
       event.clientY > rect.bottom
-    )
+    ) {
       event.currentTarget.close();
+    }
   }
   function startPractice() {
-    if (draft.mode === "flashcards" && !draft.notes.length) return;
-    if (!draft.notes.length) return;
-    const normalized = normalizeSettings(draft);
-    const safe = {
-      ...normalized,
-      timed: normalized.mode === "guided" ? false : normalized.timed,
-    };
-    const cards = buildCards(safe);
+    if (!draft.notes.length && !draft.symbolIds?.length) return;
+    const safe = normalizeSettings(draft);
+    if (safe.mode === "flashcards") chooseAnotherDragon();
     setSettings(safe);
     setDraft(safe);
-    setDeck(newDeck(cards));
-    setRoundSize(cards.length);
-    setIndex(0);
-    setMastered(0);
-    setFlipped(false);
-    setSoundError("");
     setSessionKey((current) => current + 1);
     closeSetup();
   }
-  function advance() {
-    setFlipped(false);
-    setMastered((count) => count + 1);
-    setIndex((i) => i + 1);
+  function toggleSymbol(id) {
+    setDraft((current) => ({
+      ...current,
+      symbolIds: (current.symbolIds ?? []).includes(id)
+        ? current.symbolIds.filter((symbolId) => symbolId !== id)
+        : [...(current.symbolIds ?? []), id],
+    }));
   }
-  function retryCurrent() {
-    const retry = deck[index];
-    setDeck((current) => [
-      ...current.slice(0, index),
-      ...current.slice(index + 1),
-      retry,
-    ]);
-    setFlipped(false);
+  function setCategoryExpanded(id, expanded) {
+    setExpandedCategories((current) => {
+      const next = new Set(current);
+      if (expanded) next.add(id);
+      else next.delete(id);
+      return next;
+    });
   }
-  async function hear(id) {
-    setSoundError("");
-    try {
-      await playNote(id);
-    } catch {
-      setSoundError(
-        "Sound could not start. Check your device audio and try again.",
-      );
-    }
+  function setCategorySymbols(categoryId, selected) {
+    const ids = SYMBOLS.filter((symbol) => symbol.category === categoryId).map(({ id }) => id);
+    setDraft((current) => ({
+      ...current,
+      symbolIds: selected
+        ? [...new Set([...(current.symbolIds ?? []), ...ids])]
+        : (current.symbolIds ?? []).filter((id) => !ids.includes(id)),
+    }));
   }
-  function restart() {
-    setDeck(newDeck(buildCards(settings)));
-    setIndex(0);
-    setMastered(0);
-    setFlipped(false);
+  function setOctaveNotes(octave, selected) {
+    const ids = NOTES.filter((note) => note.octave === octave).map(({ id }) => id);
+    setDraft((current) => ({
+      ...current,
+      notes: selected
+        ? [...new Set([...current.notes, ...ids])]
+        : current.notes.filter((id) => !ids.includes(id)),
+    }));
   }
 
   return (
@@ -194,9 +197,16 @@ export default function App() {
             music<span className="brand-light">notes</span>
           </span>
         </a>
-        <button type="button" className="btn btn-outline settings-button" onClick={openSetup}>
-          <span aria-hidden="true">⚙</span> Practice setup
-        </button>
+        <div className="header-actions">
+          <Progress onPractice={practiceWeakNotes} onOpenChange={setProgressOpen} />
+          <button
+            type="button"
+            className="btn btn-outline settings-button"
+            onClick={openSetup}
+          >
+            <span aria-hidden="true">⚙</span> Practice setup
+          </button>
+        </div>
       </header>
 
       <div className="workspace" id="top">
@@ -225,7 +235,7 @@ export default function App() {
           <fieldset className="mode-fieldset">
             <legend>Practice mode</legend>
             <div className="mode-grid">
-              {PRACTICE_MODES.map((mode) => (
+              {PRACTICE_FORMATS.map((mode) => (
                 <button
                   type="button"
                   key={mode.id}
@@ -235,7 +245,6 @@ export default function App() {
                     setDraft((current) => ({
                       ...current,
                       mode: mode.id,
-                      ...(mode.id === "guided" ? { timed: false } : {}),
                     }))
                   }
                 >
@@ -245,13 +254,69 @@ export default function App() {
               ))}
             </div>
           </fieldset>
-          {draft.mode !== "flashcards" && (
+          <fieldset className="option-fieldset question-type-fieldset">
+            <legend>Question types</legend>
+            <div className="segmented-options">
+              {QUESTION_TYPES.map((type) => (
+                <button
+                  type="button"
+                  key={type}
+                  aria-pressed={draft.questionTypes.includes(type)}
+                  className={`btn ${draft.questionTypes.includes(type) ? "btn-primary" : "btn-outline"}`}
+                  onClick={() => toggleQuestionType(type)}
+                >
+                  {QUESTION_TYPE_LABELS[type]}
+                </button>
+              ))}
+            </div>
+            {draft.mode === "flashcards" &&
+              draft.questionTypes.includes("guided") &&
+              draft.questionTypes.includes("letters") && (
+                <small className="question-type-hint">
+                  Guided and All letters use the same staff-to-letter card in Flashcards.
+                </small>
+              )}
+          </fieldset>
+          <fieldset className="option-fieldset symbol-selection">
+            <legend>Musical symbols <span className="pitch-count">{draft.symbolIds?.length ?? 0} selected</span></legend>
+            <p className="symbol-selection-hint">Add symbols to mix them into practice and flashcards.</p>
+            {SYMBOL_CATEGORIES.map((category) => {
+              const categorySymbols = SYMBOLS.filter((symbol) => symbol.category === category.id);
+              const expanded = expandedCategories.has(`symbol-${category.id}`);
+              const selectedCount = categorySymbols.filter(({ id }) => (draft.symbolIds ?? []).includes(id)).length;
+              return <section className="symbol-category" key={category.id}>
+                <div className="category-heading">
+                  <button type="button" className="category-toggle" aria-expanded={expanded} onClick={() => setCategoryExpanded(`symbol-${category.id}`, !expanded)}>
+                    <span className="category-chevron" aria-hidden="true">{expanded ? "▾" : "▸"}</span>
+                    <span>{category.label}</span>
+                    <span className="category-count">{selectedCount}/{categorySymbols.length}</span>
+                  </button>
+                  <div className="category-actions" aria-label={`${category.label} selection`}>
+                    <button type="button" className="btn btn-outline" aria-label={`Select all ${category.label}`} onClick={() => setCategorySymbols(category.id, true)} disabled={selectedCount === categorySymbols.length}>Select all</button>
+                    <button type="button" className="btn btn-outline" aria-label={`Deselect all ${category.label}`} onClick={() => setCategorySymbols(category.id, false)} disabled={selectedCount === 0}>Deselect all</button>
+                  </div>
+                </div>
+                {expanded && <div className="symbol-picks">
+                  {categorySymbols.map((symbol) => {
+                    const selected = (draft.symbolIds ?? []).includes(symbol.id);
+                    return (
+                      <button type="button" key={symbol.id} className={`btn symbol-pick ${selected ? "btn-primary" : "btn-outline"}`} aria-pressed={selected} onClick={() => toggleSymbol(symbol.id)}>
+                        <SymbolNotation symbol={symbol} compact />
+                        <span>{symbol.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>}
+              </section>;
+            })}
+          </fieldset>
+          {draft.mode === "choice" && (
             <div className="practice-options">
-              {["guided", "keyboard-letters"].includes(draft.mode) && (
+              {isChoiceMode(draft.mode) && (
                 <fieldset className="option-fieldset">
                   <legend>Answer choices</legend>
                   <div className="segmented-options">
-                    {[2, 3, 4, 5].map((choiceCount) => (
+                    {CHOICE_COUNTS.map((choiceCount) => (
                       <button
                         type="button"
                         key={choiceCount}
@@ -270,7 +335,7 @@ export default function App() {
               <fieldset className="option-fieldset">
                 <legend>Round length</legend>
                 <div className="segmented-options">
-                  {[5, 10, 0].map((length) => (
+                  {ROUND_LENGTHS.map((length) => (
                     <button
                       type="button"
                       key={length}
@@ -288,25 +353,6 @@ export default function App() {
                   ))}
                 </div>
               </fieldset>
-              {draft.mode !== "guided" && (
-                <label className="toggle-option">
-                  <input
-                    className="checkbox checkbox-lg"
-                    type="checkbox"
-                    checked={Boolean(draft.timed)}
-                    onChange={(event) =>
-                      setDraft((current) => ({
-                        ...current,
-                        timed: event.target.checked,
-                      }))
-                    }
-                  />
-                  <span>
-                    <strong>60-second challenge</strong>
-                    <small>Finish the selected round within 60 seconds.</small>
-                  </span>
-                </label>
-              )}
             </div>
           )}
           <fieldset className="clef-fieldset">
@@ -347,59 +393,52 @@ export default function App() {
             </div>
           </div>
           <div className="preset-row" aria-label="Pitch presets">
-            <button
-              className="btn btn-outline"
-              type="button"
-              onClick={() => choosePreset([...DEFAULT_SETTINGS.notes])}
-            >
-              Starter
-            </button>
-            <button
-              className="btn btn-outline"
-              type="button"
-              onClick={() =>
-                choosePreset(
-                  NOTES.filter(
-                    (n) =>
-                      (n.octave === 4 &&
-                        ["E", "F", "G", "A", "B"].includes(n.letter)) ||
-                      (n.octave === 5 &&
-                        ["C", "D", "E", "F"].includes(n.letter)),
-                  ).map((n) => n.id),
-                )
-              }
-            >
-              Treble staff
-            </button>
-            <button
-              className="btn btn-outline"
-              type="button"
-              onClick={() =>
-                choosePreset(
-                  NOTES.filter(
-                    (n) =>
-                      (n.octave === 2 && ["G", "A", "B"].includes(n.letter)) ||
-                      (n.octave === 3 &&
-                        ["C", "D", "E", "F", "G", "A"].includes(n.letter)),
-                  ).map((n) => n.id),
-                )
-              }
-            >
-              Bass staff
-            </button>
+            {NOTE_PRESETS.map(({ label, notes }) => (
+              <button
+                key={label}
+                className="btn btn-outline"
+                type="button"
+                onClick={() => choosePreset(notes)}
+              >
+                {label}
+              </button>
+            ))}
           </div>
           <div className="selection-actions">
-            <button className="btn btn-outline" type="button" onClick={selectAll}>
+            <button
+              className="btn btn-outline"
+              type="button"
+              onClick={selectAll}
+            >
               Select all
             </button>
-            <button className="btn btn-outline" type="button" onClick={clearSelection}>
+            <button
+              className="btn btn-outline"
+              type="button"
+              onClick={clearSelection}
+            >
               Clear
             </button>
           </div>
           <div className="pitch-groups" aria-label="Select pitches">
-            {octaves.map((octave) => (
-              <div className="pitch-row" key={octave}>
-                <span className="octave-label">{octave}</span>
+            {octaves.map((octave) => {
+              const octaveNotes = NOTES.filter((note) => note.octave === octave);
+              const expanded = expandedCategories.has(`octave-${octave}`);
+              const selectedCount = octaveNotes.filter(({ id }) => noteIds.has(id)).length;
+              return <section className="pitch-category" key={octave}>
+                <div className="category-heading">
+                  <button type="button" className="category-toggle" aria-expanded={expanded} onClick={() => setCategoryExpanded(`octave-${octave}`, !expanded)}>
+                    <span className="category-chevron" aria-hidden="true">{expanded ? "▾" : "▸"}</span>
+                    <span>Octave {octave}</span>
+                    <span className="category-count">{selectedCount}/{octaveNotes.length}</span>
+                  </button>
+                  <div className="category-actions" aria-label={`Octave ${octave} pitch selection`}>
+                    <button type="button" className="btn btn-outline" aria-label={`Select all pitches in octave ${octave}`} onClick={() => setOctaveNotes(octave, true)} disabled={selectedCount === octaveNotes.length}>Select all</button>
+                    <button type="button" className="btn btn-outline" aria-label={`Deselect all pitches in octave ${octave}`} onClick={() => setOctaveNotes(octave, false)} disabled={selectedCount === 0}>Deselect all</button>
+                  </div>
+                </div>
+                {expanded && <div className="pitch-row">
+                <span className="octave-label" aria-hidden="true">{octave}</span>
                 <div className="pitch-buttons">
                   {NOTES.filter((n) => n.octave === octave).map((note) => (
                     <button
@@ -414,181 +453,42 @@ export default function App() {
                     </button>
                   ))}
                 </div>
-              </div>
-            ))}
+              </div>}
+              </section>;
+            })}
           </div>
-          {!draft.notes.length && (
+          {!draft.notes.length && !draft.symbolIds?.length && (
             <p className="form-hint" role="status">
               Select at least one pitch to begin.
             </p>
           )}
           <button
             type="button"
-            className="btn btn-primary start-button"
+            className="btn btn-primary btn-lg start-button"
             onClick={startPractice}
-            disabled={!draft.notes.length}
+            disabled={!draft.notes.length && !draft.symbolIds?.length}
           >
             Start practice <span aria-hidden="true">→</span>
           </button>
         </dialog>
 
-        <section className="practice-panel" aria-label="Note practice">
-          {settings.mode !== "flashcards" ? (
+        <section
+          className={`practice-panel dragon-${dragonIndex}`}
+          style={{ "--dragon-image": `url("${DRAGONS[dragonIndex - 1]}")` }}
+          aria-label="Note practice"
+        >
+          {settings.mode === "flashcards" ? (
+            <Flashcards key={sessionKey} settings={settings} onRestart={chooseAnotherDragon} />
+          ) : (
             <PracticeSession
               key={sessionKey}
               settings={settings}
-              paused={setupOpen}
+              paused={setupOpen || progressOpen}
+              onStart={chooseAnotherDragon}
             />
-          ) : (
-            <>
-              <div className="session-topline">
-                {!complete && (
-                  <span className="progress-count">
-                    {mastered}
-                    <span> / {roundSize} mastered</span>
-                  </span>
-                )}
-              </div>
-              {complete ? (
-                <div className="finish-card" role="status">
-                  <h2>Practice complete</h2>
-                  <p>
-                    {roundSize} {roundSize === 1 ? "card" : "cards"} completed.
-                  </p>
-                  <button
-                    type="button"
-                    className="btn btn-primary start-button"
-                    onClick={restart}
-                  >
-                    Practice again <span aria-hidden="true">↻</span>
-                  </button>
-                </div>
-              ) : card ? (
-                <>
-                  <div
-                    className="progress-track"
-                    role="progressbar"
-                    aria-label="Cards mastered"
-                    aria-valuemin="0"
-                    aria-valuemax={roundSize}
-                    aria-valuenow={mastered}
-                  >
-                    <span
-                      style={{ width: `${(mastered / roundSize) * 100}%` }}
-                    />
-                  </div>
-                  <div className="card-wrap">
-                    <ReactCardFlip
-                      key={`${card.id}-${index}`}
-                      isFlipped={flipped}
-                      flipDirection="horizontal"
-                      flipSpeedFrontToBack={reducedMotion ? 0 : 0.6}
-                      flipSpeedBackToFront={reducedMotion ? 0 : 0.6}
-                      containerStyle={{ width: "100%" }}
-                    >
-                      <article
-                        className="flashcard card-front"
-                        key="front"
-                        aria-hidden={flipped}
-                        inert={flipped ? "" : undefined}
-                      >
-                        {card.clef === "bass" && (
-                          <div className="card-meta">
-                            <span className="badge badge-primary clef-badge">
-                              Bass clef
-                            </span>
-                          </div>
-                        )}
-                        <div className="staff-frame">
-                          <Staff
-                            note={card.note}
-                            clef={card.clef}
-                            hiddenLabel
-                          />
-                        </div>
-                        <h3 ref={questionHeading} tabIndex="-1">
-                          What note is this?
-                        </h3>
-                        <button
-                          type="button"
-                          className="btn btn-outline hear-button"
-                          onClick={() => hear(card.note.id)}
-                        >
-                          <span aria-hidden="true">♪</span> Hear the note
-                        </button>
-                        <button
-                          type="button"
-                          className="btn btn-primary reveal-button"
-                          onClick={() => {
-                            setFlipped(true);
-                            setSoundError("");
-                          }}
-                        >
-                          Reveal answer
-                        </button>
-                      </article>
-                      <article
-                        className="flashcard card-back"
-                        key="back"
-                        aria-hidden={!flipped}
-                        inert={!flipped ? "" : undefined}
-                      >
-                        {card.clef === "bass" && (
-                          <div className="card-meta">
-                            <span className="clef-badge">Bass clef</span>
-                          </div>
-                        )}
-                        <h3
-                          className="sr-only"
-                          ref={answerHeading}
-                          tabIndex="-1"
-                        >
-                          Answer: {card.note.id}
-                        </h3>
-                        <div className="answer-note" aria-hidden="true">
-                          <span>{card.note.letter}</span>
-                          <small>octave {card.note.octave}</small>
-                        </div>
-                        <Keyboard note={card.note} onPlay={hear} showLabels />
-                        <button
-                          type="button"
-                          className="btn btn-outline hear-button answer-hear"
-                          onClick={() => hear(card.note.id)}
-                        >
-                          <span aria-hidden="true">♪</span> Hear the note
-                        </button>
-                        <div className="grade-actions">
-                          <button
-                            type="button"
-                            className="btn btn-outline again-button"
-                            onClick={retryCurrent}
-                          >
-                            Again{" "}
-                            <span className="grade-hint">come back later</span>
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-primary got-it-button"
-                            onClick={advance}
-                          >
-                            Got it <span aria-hidden="true">✓</span>
-                          </button>
-                        </div>
-                      </article>
-                    </ReactCardFlip>
-                  </div>
-                </>
-              ) : null}
-              <div className="sound-message" role="status" aria-live="polite">
-                {soundError}
-              </div>
-            </>
           )}
         </section>
       </div>
-      <footer className="page-footer">
-        <span>Settings saved on this device.</span>
-      </footer>
     </main>
   );
 }

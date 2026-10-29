@@ -2,11 +2,12 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   answerChoices,
+  buildFlashcardCards,
+  buildPracticeCards,
   createRound,
-  getKeyboardRange,
   isAnswerCorrect,
 } from "../src/practice.js";
-import { NOTES, buildCards } from "../src/music.js";
+import { buildCards } from "../src/music.js";
 
 const cardFor = (noteId) => buildCards({ clef: "treble", notes: [noteId] })[0];
 
@@ -39,6 +40,47 @@ test("all-notes round contains the selected deck exactly once", () => {
 test("round builder handles an empty deck", () => {
   assert.deepEqual(createRound([], 5), []);
   assert.deepEqual(createRound(null, 0), []);
+});
+
+test("selected question types mix evenly for choice and flashcard formats", () => {
+  const settings = {
+    mode: "choice",
+    clef: "treble",
+    notes: ["C4", "D4", "E4"],
+    questionTypes: ["guided", "keyboard-letters"],
+  };
+  const cards = buildPracticeCards(settings);
+  assert.deepEqual(
+    new Set(cards.map((card) => card.quizMode)),
+    new Set(settings.questionTypes),
+  );
+  const round = createRound(cards, 5);
+  const roundTypeCounts = settings.questionTypes.map(
+    (type) => round.filter((card) => card.quizMode === type).length,
+  );
+  assert.ok(Math.max(...roundTypeCounts) - Math.min(...roundTypeCounts) <= 1);
+  const allNotes = createRound(cards, 0);
+  assert.equal(allNotes.length, cards.length);
+  assert.equal(
+    allNotes.filter((card) => card.quizMode === "guided").length,
+    allNotes.filter((card) => card.quizMode === "keyboard-letters").length,
+  );
+  const flashcards = buildPracticeCards({ ...settings, mode: "flashcards" });
+  assert.deepEqual(new Set(flashcards.map((card) => card.quizMode)), new Set(settings.questionTypes));
+  assert.equal(flashcards.length, 6);
+});
+
+test("guided and all-letters selections share one equivalent flashcard direction", () => {
+  const settings = {
+    mode: "flashcards",
+    clef: "treble",
+    notes: ["C4", "D4"],
+    questionTypes: ["guided", "letters", "keyboard"],
+  };
+  const cards = buildFlashcardCards(settings);
+  assert.equal(cards.filter((card) => card.quizMode === "guided").length, 2);
+  assert.equal(cards.filter((card) => card.quizMode === "letters").length, 0);
+  assert.equal(cards.filter((card) => card.quizMode === "keyboard").length, 2);
 });
 
 test("single-note rounds repeat that note to the requested length", () => {
@@ -78,19 +120,6 @@ test("guided choices safely fill from natural letters when the selected pool is 
   assert.ok(choices.every((letter) => "ABCDEFG".includes(letter)));
 });
 
-test("keyboard range covers selected pitches and expands a single pitch to an octave", () => {
-  const cards = buildCards({ clef: "treble", notes: ["D4", "B4"] });
-  const range = getKeyboardRange(cards);
-  assert.ok(
-    cards.every(
-      (card) => card.note.midi >= range.first && card.note.midi <= range.last,
-    ),
-  );
-
-  const onePitch = getKeyboardRange([cardFor("C6")]);
-  assert.deepEqual(onePitch, { first: 72, last: 84 });
-});
-
 test("keyboard answers require exact pitch while letter answers ignore octave", () => {
   const c4 = cardFor("C4");
 
@@ -98,17 +127,4 @@ test("keyboard answers require exact pitch while letter answers ignore octave", 
   assert.equal(isAnswerCorrect(c4, "C5", "keyboard"), false);
   assert.equal(isAnswerCorrect(c4, "C4", "keyboard"), true);
   assert.equal(isAnswerCorrect(c4, c4.note.midi, "keyboard"), true);
-});
-
-test("keyboard range respects the supported MIDI bounds", () => {
-  const cards = buildCards({ clef: "treble", notes: ["C2", "C6"] });
-  const { first, last } = getKeyboardRange(cards);
-
-  assert.ok(first >= 36);
-  assert.ok(last <= 84);
-  assert.ok(
-    cards.every((card) => card.note.midi >= first && card.note.midi <= last),
-  );
-  assert.equal(NOTES[0].midi, 36);
-  assert.equal(NOTES.at(-1).midi, 84);
 });

@@ -14,9 +14,12 @@ export default function Staff({
     const host = hostRef.current;
     if (!host || !note) return undefined;
     let observer;
+    let frame;
+    let renderedWidth = 0;
     const draw = () => {
-      const scale = 2;
+      const scale = 2.8;
       const width = Math.max(240, Math.floor(host.clientWidth || 320));
+      renderedWidth = width;
       const logicalWidth = width / scale;
       const letterIndex = { C: 0, D: 1, E: 2, F: 3, G: 4, A: 5, B: 6 };
       const noteStep = note.octave * 7 + letterIndex[note.letter];
@@ -29,6 +32,8 @@ export default function Staff({
         staveY + noteY + 25,
       );
       host.replaceChildren();
+      host.removeAttribute("role");
+      host.removeAttribute("aria-label");
       const renderer = new Renderer(host, Renderer.Backends.SVG);
       renderer.resize(width, Math.ceil(logicalHeight * scale));
       const context = renderer.getContext();
@@ -39,6 +44,9 @@ export default function Staff({
         clef,
         keys: [`${note.letter.toLowerCase()}/${note.octave}`],
         duration: "q",
+        // VexFlow's `sq` note type selects its filled square notehead glyph.
+        // Keeping StaveNote's key, stem, and ledger-line logic preserves pitch placement.
+        type: "sq",
         alignCenter: true,
         autoStem: true,
       });
@@ -48,6 +56,26 @@ export default function Staff({
       voice.draw(context, stave);
       const svg = host.querySelector("svg");
       if (svg) {
+        // Use VexFlow's ink metrics; SVG text boxes include unused font ascent.
+        // Cropping this space keeps the enlarged notation at its original scale.
+        const bounds = staveNote.getBoundingBox();
+        for (const modifier of stave.getModifiers()) {
+          if (modifier.getCategory() === "Clef") {
+            bounds.mergeWith(modifier.getBoundingBox());
+          }
+        }
+        const padding = compact ? 12 : 16;
+        const top = Math.floor(
+          Math.min(bounds.getY(), stave.getYForLine(0)) - padding,
+        );
+        const bottom =
+          Math.max(bounds.getY() + bounds.getH(), stave.getYForLine(4)) +
+          padding;
+        const height = Math.ceil(bottom - top);
+        svg.setAttribute("viewBox", `0 ${top} ${logicalWidth} ${height}`);
+        svg.setAttribute("height", String(height * scale));
+        svg.style.width = "100%";
+        svg.style.height = "auto";
         svg.setAttribute("role", "img");
         svg.setAttribute(
           "aria-label",
@@ -58,8 +86,7 @@ export default function Staff({
       }
     };
     let active = true;
-    // VexFlow 5 bundles its fonts locally, but FontFace loading is asynchronous.
-    Promise.resolve(document.fonts?.ready).then(() => {
+    const renderSafely = () => {
       if (!active) return;
       try {
         draw();
@@ -69,23 +96,28 @@ export default function Staff({
         host.setAttribute("aria-label", `${clef} staff could not be rendered`);
         console.error("Unable to render music staff", error);
       }
-    });
+    };
+    // VexFlow bundles its fonts locally, but FontFace loading is asynchronous.
+    Promise.resolve(document.fonts?.ready).then(renderSafely);
     if (typeof ResizeObserver !== "undefined") {
       observer = new ResizeObserver(() => {
-        if (!active) return;
-        if (!document.fonts?.status || document.fonts.status === "loaded") {
-          try {
-            draw();
-          } catch (error) {
-            console.error("Unable to resize music staff", error);
-          }
-        }
+        const width = Math.max(240, Math.floor(host.clientWidth || 320));
+        if (
+          !active ||
+          width === renderedWidth ||
+          document.fonts?.status === "loading"
+        )
+          return;
+        // Height changes caused by drawing must not recursively redraw the host.
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(renderSafely);
       });
       observer.observe(host);
     }
     return () => {
       active = false;
       observer?.disconnect();
+      cancelAnimationFrame(frame);
     };
   }, [note, clef, hiddenLabel, compact]);
 

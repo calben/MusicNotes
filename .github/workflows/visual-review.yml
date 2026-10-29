@@ -1,0 +1,41 @@
+name: Tablet visual review
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "src/**"
+      - "visual/**"
+      - "playwright.config.js"
+      - "package*.json"
+      - ".github/workflows/visual-review.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run screenshots
+      - name: Build partial gallery after failure
+        if: failure()
+        run: npm run screenshots:gallery
+      - name: Save screenshots, accessibility audits, and traces
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: tablet-visual-review
+          path: |
+            screenshots/review/
+            playwright-report/
+            test-results/
+          retention-days: 14

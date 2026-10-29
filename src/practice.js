@@ -1,13 +1,58 @@
 import { shuffle } from "lodash-es";
-import * as Tone from "tone";
-import { newDeck, PRACTICE_MODES } from "./music.js";
+import { buildSymbolCards, isSymbolAnswerCorrect, symbolAnswerChoices } from "./symbols.js";
+import {
+  buildCards,
+  CHOICE_COUNTS,
+  LETTERS,
+  newDeck,
+  noteToMidi,
+  normalizeSettings,
+} from "./music.js";
 
-const LETTERS = ["A", "B", "C", "D", "E", "F", "G"];
-export { PRACTICE_MODES };
+export function buildPracticeCards(settings) {
+  const safe = normalizeSettings(settings);
+  const cards = buildCards(safe);
+  const directions = safe.questionTypes;
+  const keyboardCards = [...new Map(cards.map((card) => [card.note.id, card])).values()];
+  const noteCards = directions.flatMap((quizMode) =>
+    (quizMode === "keyboard-letters" ? keyboardCards : cards).map((card) => ({
+      ...card,
+      id: `${card.id}-${quizMode}`,
+      quizMode,
+    })),
+  );
+  return [...noteCards, ...buildSymbolCards(safe.symbolIds)];
+}
+
+export function buildFlashcardCards(settings) {
+  const cards = buildPracticeCards(settings);
+  const types = new Set(settings.questionTypes ?? []);
+  if (!types.has("guided") || !types.has("letters")) return cards;
+  return cards.filter((card) => card.quizMode !== "letters");
+}
 
 export function createRound(cards, roundLength = 5) {
   if (!Array.isArray(cards) || cards.length === 0) return [];
   if (roundLength === 0) return newDeck(cards);
+  if (cards.some((card) => card.quizMode)) {
+    const size = Math.max(1, roundLength);
+    const modes = shuffle([...new Set(cards.map((card) => card.quizMode))]);
+    const decks = new Map(
+      modes.map((mode) => [mode, newDeck(cards.filter((card) => card.quizMode === mode))]),
+    );
+    const positions = new Map(modes.map((mode) => [mode, 0]));
+    return Array.from({ length: size }, (_, index) => {
+      const mode = modes[index % modes.length];
+      const deck = decks.get(mode);
+      let position = positions.get(mode);
+      if (position >= deck.length) {
+        decks.set(mode, newDeck(deck));
+        position = 0;
+      }
+      positions.set(mode, position + 1);
+      return decks.get(mode)[position];
+    });
+  }
   const size = Math.max(1, roundLength);
   const round = [];
   while (round.length < size) {
@@ -18,8 +63,9 @@ export function createRound(cards, roundLength = 5) {
 }
 
 export function answerChoices(card, choiceCount = 2, selectedCards = []) {
+  if (card?.kind === "symbol") return symbolAnswerChoices(card, choiceCount);
   if (!card?.note?.letter) return [];
-  const count = [2, 3, 4, 5].includes(choiceCount) ? choiceCount : 2;
+  const count = CHOICE_COUNTS.includes(choiceCount) ? choiceCount : 2;
   const correct = card.note.letter.toUpperCase();
   const selectedLetters = [
     ...new Set(
@@ -36,30 +82,12 @@ export function answerChoices(card, choiceCount = 2, selectedCards = []) {
   return shuffle([correct, ...decoys]);
 }
 
-export function getKeyboardRange(cards) {
-  const pitches = (cards || [])
-    .map((card) => card.note?.midi)
-    .filter(Number.isFinite);
-  if (!pitches.length) return { first: 36, last: 48 };
-  let first = Math.max(36, Math.floor(Math.min(...pitches) / 12) * 12);
-  let last = Math.min(84, Math.ceil(Math.max(...pitches) / 12) * 12);
-  if (last <= first) {
-    if (first + 12 <= 84) last = first + 12;
-    else first = Math.max(36, last - 12);
-  }
-  return { first, last };
-}
-
-function noteIdToMidi(noteId) {
-  const match = /^([A-G])([#b]?)([2-6])$/.exec(String(noteId || ""));
-  if (!match) return null;
-  return Tone.Frequency(noteId).toMidi();
-}
-
 export function isAnswerCorrect(card, answer, mode = "letters") {
+  if (card?.kind === "symbol") return isSymbolAnswerCorrect(card, answer);
   if (!card?.note) return false;
+  mode = card.quizMode ?? mode;
   if (mode === "keyboard") {
-    const midi = typeof answer === "number" ? answer : noteIdToMidi(answer);
+    const midi = typeof answer === "number" ? answer : noteToMidi(answer);
     return midi === card.note.midi;
   }
   return String(answer || "").toUpperCase() === card.note.letter.toUpperCase();

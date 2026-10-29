@@ -1,7 +1,7 @@
 /* Small layout adjustments around DaisyUI components. Component colors,
    borders, focus rings, and hover states come from DaisyUI's light theme. */
 .staff-frame {
-  width: min(100%, 760px);
+  width: min(100%, 900px);
   min-height: 185px;
 }
 
@@ -74,12 +74,6 @@
   gap: 0.75rem;
 }
 
-.answer-choice.btn {
-  min-width: 5rem;
-  min-height: 4.5rem;
-  font-size: clamp(1.5rem, 3.5vw, 2rem);
-}
-
 .practice-progress__bar {
   border-radius: 999px;
 }
@@ -89,10 +83,6 @@
 }
 
 @media (max-width: 650px) {
-  .answer-choice.btn {
-    min-height: 4.5rem;
-  }
-
   .pitch-chip.btn {
     min-width: 2.75rem;
   }

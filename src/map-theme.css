@@ -1,0 +1,149 @@
+/* The dragon rests on the map border, clear of the music and keys. */
+.practice-panel {
+  position: relative;
+  isolation: isolate;
+  margin-top: clamp(60px, 8vw, 82px);
+  border: 2px solid #342d25;
+  border-radius: 5px;
+  background: var(--color-base-100);
+}
+
+.practice-panel::before {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border: 1px solid #b7aa91;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.practice-panel::after {
+  content: "";
+  position: absolute;
+  right: 18px;
+  bottom: calc(100% - clamp(16px, calc(5.47vw - 26px), 30px));
+  width: clamp(160px, 21vw, 220px);
+  aspect-ratio: 3 / 2;
+  background: var(--dragon-image) no-repeat right bottom / contain;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.practice-panel.dragon-3::after,
+.practice-panel.dragon-5::after {
+  bottom: calc(100% - clamp(11px, calc(5.08vw - 28px), 24px));
+}
+
+.practice-panel.dragon-4::after {
+  bottom: calc(100% - clamp(17px, calc(5.08vw - 22px), 30px));
+}
+
+.brand {
+  font-size: 29px;
+  letter-spacing: 0;
+}
+
+@media (max-width: 650px) {
+  .brand {
+    font-size: 23px;
+  }
+}
+
+.brand-mark {
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  color: var(--ink);
+  background: transparent;
+}
+
+.setup-panel {
+  border: 2px solid var(--ink);
+  border-radius: 5px 0 0 5px;
+}
+
+.practice-question {
+  font-family: "Grenze Gotisch", Georgia, serif;
+  font-size: 2rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.flashcard h3 {
+  font-family: "Grenze Gotisch", Georgia, serif;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.practice-instructions {
+  font-family: "Grenze Gotisch", Georgia, serif;
+  color: var(--ink);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.practice-complete h2 {
+  color: var(--ink);
+  font-family: "Grenze Gotisch", Georgia, serif;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.setup-heading h1,
+.parent-progress h2 {
+  font-family: "Grenze Gotisch", Georgia, serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.parent-progress__section h3 {
+  font-family: "Grenze Gotisch", Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.finish-card h2 {
+  font-family: "Grenze Gotisch", Georgia, serif;
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.practice-question-actions .btn,
+.practice-actions-row .btn {
+  font-size: 1rem;
+}
+
+.practice-start-screen,
+.practice-complete,
+.flashcard,
+.finish-card {
+  border-radius: 5px;
+}
+
+.mode-fieldset legend,
+.option-fieldset legend {
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.form-hint {
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
+@media (min-width: 701px) and (max-height: 900px) {
+  .card-front .staff-frame {
+    margin: 4px 0 2px;
+  }
+
+  .card-front h3 {
+    margin-bottom: 8px;
+  }
+
+  .card-front .reveal-button {
+    margin-top: 8px;
+  }
+}
