@@ -5,7 +5,6 @@ import { DEFAULT_SETTINGS } from "../src/music.js";
 
 // A small, focused capture set for tablet layout changes.
 for (const mode of [
-  "guided",
   "letters",
   "keyboard",
   "keyboard-letters",
@@ -23,10 +22,10 @@ for (const mode of [
       },
       {
         ...DEFAULT_SETTINGS,
-        mode,
+        mode: mode === "flashcards" ? "flashcards" : "choice",
+        questionTypes: mode === "flashcards" ? ["letters"] : [mode],
         clef: "treble",
         notes: ["C4"],
-        choiceCount: 5,
       },
     );
     await page.goto("/");

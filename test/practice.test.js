@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   answerChoices,
-  buildFlashcardCards,
   buildPracticeCards,
   createRound,
   isAnswerCorrect,
@@ -42,12 +41,26 @@ test("round builder handles an empty deck", () => {
   assert.deepEqual(createRound(null, 0), []);
 });
 
+test("musical symbols can be practiced without note question types", () => {
+  const settings = {
+    mode: "choice",
+    notes: [],
+    questionTypes: [],
+    symbolIds: ["quarter-note"],
+  };
+  const cards = buildPracticeCards(settings);
+
+  assert.equal(cards.length, 1);
+  assert.equal(cards[0].kind, "symbol");
+  assert.equal(cards[0].symbol.id, "quarter-note");
+});
+
 test("selected question types mix evenly for choice and flashcard formats", () => {
   const settings = {
     mode: "choice",
     clef: "treble",
     notes: ["C4", "D4", "E4"],
-    questionTypes: ["guided", "keyboard-letters"],
+    questionTypes: ["letters", "keyboard-letters"],
   };
   const cards = buildPracticeCards(settings);
   assert.deepEqual(
@@ -62,7 +75,7 @@ test("selected question types mix evenly for choice and flashcard formats", () =
   const allNotes = createRound(cards, 0);
   assert.equal(allNotes.length, cards.length);
   assert.equal(
-    allNotes.filter((card) => card.quizMode === "guided").length,
+    allNotes.filter((card) => card.quizMode === "letters").length,
     allNotes.filter((card) => card.quizMode === "keyboard-letters").length,
   );
   const flashcards = buildPracticeCards({ ...settings, mode: "flashcards" });
@@ -70,16 +83,15 @@ test("selected question types mix evenly for choice and flashcard formats", () =
   assert.equal(flashcards.length, 6);
 });
 
-test("guided and all-letters selections share one equivalent flashcard direction", () => {
+test("legacy guided and all-letter settings migrate to one flashcard direction", () => {
   const settings = {
     mode: "flashcards",
     clef: "treble",
     notes: ["C4", "D4"],
     questionTypes: ["guided", "letters", "keyboard"],
   };
-  const cards = buildFlashcardCards(settings);
-  assert.equal(cards.filter((card) => card.quizMode === "guided").length, 2);
-  assert.equal(cards.filter((card) => card.quizMode === "letters").length, 0);
+  const cards = buildPracticeCards(settings);
+  assert.equal(cards.filter((card) => card.quizMode === "letters").length, 2);
   assert.equal(cards.filter((card) => card.quizMode === "keyboard").length, 2);
 });
 
@@ -91,31 +103,19 @@ test("single-note rounds repeat that note to the requested length", () => {
   assert.ok(round.every((item) => item.id === card.id));
 });
 
-test("guided choices include one correct letter and no duplicates", () => {
+test("staff-to-letter questions always offer A through G", () => {
   const card = cardFor("C4");
-  const selected = buildCards({ clef: "treble", notes: ["C4", "D4", "E4"] });
-  const twoChoices = answerChoices(card, 2, selected);
-  const threeChoices = answerChoices(card, 3, selected);
-  const fourChoices = answerChoices(card, 4, selected);
-  const fiveChoices = answerChoices(card, 5, selected);
-
-  assert.equal(twoChoices.length, 2);
-  assert.equal(threeChoices.length, 3);
-  assert.equal(fourChoices.length, 4);
-  assert.equal(fiveChoices.length, 5);
-  for (const choices of [twoChoices, threeChoices, fourChoices, fiveChoices]) {
-    assert.equal(new Set(choices).size, choices.length);
-    assert.equal(choices.filter((letter) => letter === "C").length, 1);
-    assert.ok(choices.every((letter) => "ABCDEFG".includes(letter)));
-  }
+  const choices = answerChoices(card);
+  assert.deepEqual(choices, ["A", "B", "C", "D", "E", "F", "G"]);
+  assert.equal(choices.length, 7);
 });
 
-test("guided choices safely fill from natural letters when the selected pool is too small", () => {
+test("letter choices stay complete when the selected pool is too small", () => {
   const card = cardFor("C4");
-  const choices = answerChoices(card, 3, [card]);
+  const choices = answerChoices(card);
 
-  assert.equal(choices.length, 3);
-  assert.equal(new Set(choices).size, 3);
+  assert.equal(choices.length, 7);
+  assert.equal(new Set(choices).size, 7);
   assert.ok(choices.includes("C"));
   assert.ok(choices.every((letter) => "ABCDEFG".includes(letter)));
 });

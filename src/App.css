@@ -46,6 +46,7 @@ body {
   display: flex;
   align-items: center;
   gap: 9px;
+  flex: 0 0 auto;
   text-decoration: none;
   color: var(--ink);
   font:
@@ -53,15 +54,12 @@ body {
     serif;
   letter-spacing: -0.7px;
 }
-.brand-mark {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--color-secondary) 16%, var(--paper));
-  color: var(--color-secondary);
-  display: grid;
-  place-items: center;
-  font-size: 22px;
+.brand-logo {
+  display: block;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  object-fit: contain;
 }
 .brand-light {
   font-weight: 500;
@@ -245,6 +243,8 @@ body:has(.setup-panel[open]) {
 .symbol-pick.btn { min-width: 0; min-height: 114px; height: auto; padding: 7px 5px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; white-space: normal; line-height: 1.2; font-size: 11px; }
 .symbol-pick .symbol-notation { width: 100%; height: 80px; min-height: 0; display: grid; place-items: center; overflow: hidden; }
 .symbol-pick .symbol-notation svg { width: auto; height: 76px; max-width: 100%; }
+.symbol-pick.btn-primary .symbol-notation { color: var(--color-primary-content); }
+.symbol-pick.btn-primary .symbol-notation svg { filter: brightness(0) saturate(100%) invert(95%) sepia(9%) saturate(500%) hue-rotate(350deg); }
 .symbol-pick .symbol-dynamic-glyph { font: italic 700 30px Georgia, serif; }
 .symbol-pick .symbol-clef-glyph { font: 40px/1 Georgia, serif; }
 .symbol-pick .symbol-clef-glyph.bass { font-size: 34px; }
@@ -608,6 +608,10 @@ body:has(.setup-panel[open]) {
   .brand {
     font-size: 18px;
   }
+  .brand-logo {
+    width: 40px;
+    height: 40px;
+  }
   .setup-heading h1 {
     font-size: 21px;
   }
@@ -701,6 +705,43 @@ body:has(.setup-panel[open]) {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Keep selector labels legible at tablet viewing distance. The larger label
+   area also makes the symbol cards easier to tap without changing the grid. */
+.symbol-pick.btn {
+  min-height: 126px;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.3;
+}
+.symbol-pick .symbol-notation {
+  height: 80px;
+}
+.category-toggle {
+  font-size: 15px;
+}
+.category-count {
+  font-size: 13px;
+}
+.category-actions .btn {
+  padding-inline: 11px;
+  font-size: 14px;
+}
+
+@media (max-width: 650px) {
+  .symbol-pick.btn {
+    min-height: 122px;
+    padding-inline: 7px;
+    font-size: 14px;
+  }
+  .category-toggle {
+    font-size: 14px;
+  }
+  .category-actions .btn {
+    padding-inline: 7px;
+    font-size: 12px;
   }
 }
 .selection-actions {

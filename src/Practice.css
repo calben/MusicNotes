@@ -391,8 +391,16 @@
     gap: 5px;
   }
 
+  .practice-prompt-slot {
+    min-height: 84px;
+  }
+
+  .practice-answer-slot {
+    justify-content: flex-start;
+  }
+
   .practice-stimulus-slot {
-    min-height: 170px;
+    min-height: 275px;
   }
 
   .practice-answer-slot {
@@ -400,7 +408,7 @@
   }
 
   .practice-interaction-slot {
-    min-height: 214px;
+    min-height: 275px;
   }
 
   .practice-question-wrap[data-quiz-mode="keyboard"] {
@@ -429,12 +437,6 @@
     grid-area: answer;
   }
 
-  /* The piano is visually about the same height as the staff. This small
-     tail aligns its answer row with the staff question's answer row. */
-  .practice-question-wrap[data-quiz-mode="keyboard-letters"] > .practice-stimulus-slot {
-    padding-bottom: 42px;
-  }
-
   .practice-question-wrap[data-quiz-mode="keyboard"] > .practice-interaction-slot {
     grid-area: interaction;
   }
@@ -454,10 +456,18 @@
 }
 
 @media (min-width: 701px) and (min-height: 901px) {
-  .practice-question-wrap[data-quiz-mode="keyboard-letters"] > .practice-stimulus-slot {
-    padding-bottom: 42px;
+  .practice-prompt-slot {
+    min-height: 84px;
   }
 
+  .practice-answer-slot {
+    justify-content: flex-start;
+  }
+
+  .practice-stimulus-slot,
+  .practice-interaction-slot {
+    min-height: 275px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

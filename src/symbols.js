@@ -23,7 +23,7 @@ export const SYMBOLS = Object.freeze([
   { id: "treble-clef", category: "clefs", label: "Treble clef", description: "The clef commonly used for higher notes.", glyph: { kind: "clef", clef: "treble" } },
   { id: "bass-clef", category: "clefs", label: "Bass clef", description: "The clef commonly used for lower notes.", glyph: { kind: "clef", clef: "bass" } },
   { id: "bar-line", category: "barlines", label: "Bar line", description: "A line that separates measures.", glyph: { kind: "barline", type: "single" } },
-  { id: "repeat-sign", category: "barlines", label: "Repeat sign", description: "Marks music to be played again.", glyph: { kind: "barline", type: "repeat-both" } },
+  { id: "repeat-sign", category: "barlines", label: "Repeat sign", description: "Marks music to be played again.", glyph: { kind: "barline", type: "repeat-end" } },
 ].map((symbol) => Object.freeze({ ...symbol, glyph: Object.freeze(symbol.glyph), measureBeats: symbol.beats == null ? null : 4 })));
 
 export const SYMBOL_CATEGORIES = Object.freeze([
@@ -87,7 +87,7 @@ export function symbolAnswerChoices(card, choiceCount = 4) {
 export function symbolAnswerLabel(value, mode = "symbol-name") {
   if (mode === "symbol-beats") {
     const beats = Number(value);
-    return `${beats} ${beats === 1 ? "beat" : "beats"}`;
+    return `${beats === 0.5 ? "half" : beats} ${beats === 0.5 || beats === 1 ? "beat" : "beats"}`;
   }
   return SYMBOL_BY_ID.get(value)?.label ?? "";
 }

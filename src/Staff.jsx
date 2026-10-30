@@ -44,9 +44,6 @@ export default function Staff({
         clef,
         keys: [`${note.letter.toLowerCase()}/${note.octave}`],
         duration: "q",
-        // VexFlow's `sq` note type selects its filled square notehead glyph.
-        // Keeping StaveNote's key, stem, and ledger-line logic preserves pitch placement.
-        type: "sq",
         alignCenter: true,
         autoStem: true,
       });

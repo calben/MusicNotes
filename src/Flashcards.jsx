@@ -3,12 +3,12 @@ import Staff from "./Staff";
 import Keyboard from "./Keyboard";
 import { newDeck } from "./music.js";
 import { playNote } from "./audio.js";
-import { buildFlashcardCards } from "./practice.js";
+import { buildPracticeCards } from "./practice.js";
 import SymbolNotation from "./SymbolNotation";
 import { symbolAnswerLabel } from "./symbols.js";
 
 export default function Flashcards({ settings, onRestart }) {
-  const [deck, setDeck] = useState(() => newDeck(buildFlashcardCards(settings)));
+  const [deck, setDeck] = useState(() => newDeck(buildPracticeCards(settings)));
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [soundError, setSoundError] = useState("");
@@ -48,7 +48,7 @@ export default function Flashcards({ settings, onRestart }) {
   }
   function restart() {
     onRestart?.();
-    setDeck(newDeck(buildFlashcardCards(settings)));
+    setDeck(newDeck(buildPracticeCards(settings)));
     setIndex(0);
     setFlipped(false);
     setSoundError("");

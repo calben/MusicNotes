@@ -10,12 +10,11 @@ Choose a practice format, then select one or more question types:
 
 - **Choice** — answer each question directly.
 - **Flashcards** — reveal each answer and grade yourself.
-- **Guided letters** — choose from two to five letter buttons.
-- **All letters** — choose from A through G.
+- **Staff to letter** — choose from A through G.
 - **Piano keys** — read a staff note, then tap its matching pitch on the keyboard.
 - **Keyboard to letter** — identify the letter shown by a piano key.
 
-Guided letters is the default question type. Select multiple types to mix them in a round; a single selected type stays focused on that type. The selection works in both Choice and Flashcards. A round has five questions by default; choose 10 or all selected notes in Practice setup. Wrong answers stay on the current note until it is answered correctly, and missed notes return later in the round when possible. Choice rounds show first-try accuracy and elapsed time when complete.
+Staff to letter is the default question type. Select multiple types to mix them in a round; a single selected type stays focused on that type. The selection works in both Choice and Flashcards. A round has five questions by default; choose 10 or all selected notes in Practice setup. Wrong answers stay on the current note until it is answered correctly, and missed notes return later in the round when possible. Choice rounds show first-try accuracy and elapsed time when complete.
 
 For piano-key answers, the selected pitch must match the note's octave as well as its letter. The keyboard fits C through the next octave's E, showing C, D, and E in both octaves without scrolling or paging. In Flashcards, **Again** puts a missed card at the end of the deck. Tap **Hear the note** or a piano key to hear a synthesized tone.
 

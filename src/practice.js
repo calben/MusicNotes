@@ -2,7 +2,6 @@ import { shuffle } from "lodash-es";
 import { buildSymbolCards, isSymbolAnswerCorrect, symbolAnswerChoices } from "./symbols.js";
 import {
   buildCards,
-  CHOICE_COUNTS,
   LETTERS,
   newDeck,
   noteToMidi,
@@ -22,13 +21,6 @@ export function buildPracticeCards(settings) {
     })),
   );
   return [...noteCards, ...buildSymbolCards(safe.symbolIds)];
-}
-
-export function buildFlashcardCards(settings) {
-  const cards = buildPracticeCards(settings);
-  const types = new Set(settings.questionTypes ?? []);
-  if (!types.has("guided") || !types.has("letters")) return cards;
-  return cards.filter((card) => card.quizMode !== "letters");
 }
 
 export function createRound(cards, roundLength = 5) {
@@ -62,24 +54,10 @@ export function createRound(cards, roundLength = 5) {
   return round;
 }
 
-export function answerChoices(card, choiceCount = 2, selectedCards = []) {
-  if (card?.kind === "symbol") return symbolAnswerChoices(card, choiceCount);
+export function answerChoices(card) {
+  if (card?.kind === "symbol") return symbolAnswerChoices(card, 4);
   if (!card?.note?.letter) return [];
-  const count = CHOICE_COUNTS.includes(choiceCount) ? choiceCount : 2;
-  const correct = card.note.letter.toUpperCase();
-  const selectedLetters = [
-    ...new Set(
-      selectedCards
-        .map((item) => item.note?.letter?.toUpperCase())
-        .filter((letter) => LETTERS.includes(letter)),
-    ),
-  ];
-  const pool = selectedLetters.filter((letter) => letter !== correct);
-  const fill = LETTERS.filter(
-    (letter) => letter !== correct && !pool.includes(letter),
-  );
-  const decoys = [...shuffle(pool), ...shuffle(fill)].slice(0, count - 1);
-  return shuffle([correct, ...decoys]);
+  return [...LETTERS];
 }
 
 export function isAnswerCorrect(card, answer, mode = "letters") {

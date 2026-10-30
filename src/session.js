@@ -84,9 +84,7 @@ export function sessionReducer(state, action) {
         feedbackKind: correct ? "correct" : "wrong",
         feedback: correct
           ? `${card.kind === "symbol" ? symbolAnswerLabel(symbolAnswer(card), mode) : card.note.letter} is correct.`
-          : mode === "guided"
-            ? "Not quite. Try again."
-            : "Try once more.",
+          : "Try once more.",
       };
     }
     case "next": {

@@ -1,6 +1,6 @@
 # Tablet visual review
 
-The active capture matrix is Chromium at 1024×768 and 768×1024, with touch enabled. The gallery contains 324 screenshots and 106 automatically audited views. The review used contact sheets for the full inventory and full-resolution images for notation, primary controls, feedback, and the issues below.
+The capture matrix uses Chromium at 1024×768 and 768×1024, with touch enabled. The review used contact sheets for the full inventory and full-resolution images for notation, primary controls, feedback, and the issues below.
 
 ## Improvements made locally
 

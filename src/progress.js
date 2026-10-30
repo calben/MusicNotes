@@ -5,6 +5,7 @@ const STORAGE_KEY = "music-notes-progress-v1";
 const noteIds = new Set(NOTES.map(({ id }) => id));
 const symbolIds = new Set(SYMBOLS.map(({ id }) => id));
 const noteModes = new Set(["guided", "letters", "keyboard", "keyboard-letters"]);
+const canonicalMode = (mode) => mode === "guided" ? "letters" : mode;
 const symbolModes = new Set(["symbol-name", "symbol-beats"]);
 
 function isValidEntry(entry) {
@@ -19,7 +20,20 @@ export function readProgress(storage) {
   try {
     const saved = JSON.parse((storage ?? globalThis.localStorage)?.getItem(STORAGE_KEY) ?? "null");
     if (saved?.version !== 1 || !Array.isArray(saved.entries)) return [];
-    return saved.entries.filter(isValidEntry);
+    const entries = saved.entries.filter(isValidEntry).map((entry) => ({
+      ...entry,
+      mode: canonicalMode(entry.mode),
+    }));
+    const merged = new Map();
+    for (const entry of entries) {
+      const key = `${entry.symbolId ? `symbol:${entry.symbolId}` : `note:${entry.noteId}`}|${entry.mode}`;
+      const existing = merged.get(key);
+      if (existing) {
+        existing.attempts += entry.attempts;
+        existing.firstTry += entry.firstTry;
+      } else merged.set(key, { ...entry });
+    }
+    return [...merged.values()];
   } catch {
     return [];
   }
@@ -31,8 +45,9 @@ export function addOutcomes(entries, outcomes) {
     const isSymbol = outcome?.symbolId != null;
     if (isSymbol ? (!symbolIds.has(outcome.symbolId) || !symbolModes.has(outcome.mode)) : (!noteIds.has(outcome?.noteId) || !noteModes.has(outcome?.mode))) continue;
     const idKey = isSymbol ? `symbol:${outcome.symbolId}` : `note:${outcome.noteId}`;
-    const key = `${idKey}|${outcome.mode}`;
-    const record = records.get(key) ?? { ...(isSymbol ? { symbolId: outcome.symbolId } : { noteId: outcome.noteId }), mode: outcome.mode, attempts: 0, firstTry: 0 };
+    const mode = canonicalMode(outcome.mode);
+    const key = `${idKey}|${mode}`;
+    const record = records.get(key) ?? { ...(isSymbol ? { symbolId: outcome.symbolId } : { noteId: outcome.noteId }), mode, attempts: 0, firstTry: 0 };
     record.attempts += 1;
     record.firstTry += outcome.firstTry ? 1 : 0;
     records.set(key, record);
@@ -72,4 +87,6 @@ export function progressLabel({ attempts, firstTry }) {
 export const practiceModeLabel = (mode) => ({
   "symbol-name": "Name the symbol",
   "symbol-beats": "Symbol beats",
-}[mode] ?? PRACTICE_MODES.find(({ id }) => id === mode)?.label ?? mode);
+}[mode] ?? (mode === "guided" || mode === "letters"
+  ? PRACTICE_MODES.find(({ id }) => id === "letters")?.label
+  : PRACTICE_MODES.find(({ id }) => id === mode)?.label) ?? mode);

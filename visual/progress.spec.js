@@ -21,12 +21,11 @@ async function openWithSettings(page, settings) {
 }
 
 test("question types persist in both practice formats", async ({ page }, info) => {
-  await openWithSettings(page, { mode: "choice", questionTypes: ["guided", "keyboard"] });
+  await openWithSettings(page, { mode: "choice", questionTypes: ["letters", "keyboard"] });
   await page.getByRole("button", { name: "Practice setup" }).click();
   const types = page.getByRole("group", { name: "Question types" });
-  const allLetters = types.getByRole("button", { name: "All letters" });
-  await expect(allLetters).toHaveAttribute("aria-pressed", "false");
-  await allLetters.click();
+  const staffToLetter = types.getByRole("button", { name: "Staff to letter" });
+  await expect(staffToLetter).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByText(/Speak directions automatically/)).toHaveCount(0);
   await types.scrollIntoViewIfNeeded();
   await mkdir("screenshots/layout-review", { recursive: true });
@@ -34,9 +33,9 @@ test("question types persist in both practice formats", async ({ page }, info) =
   expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze()).violations).toEqual([]);
   await page.getByRole("button", { name: /Start practice/ }).click();
   await page.getByRole("button", { name: "Practice setup" }).click();
-  await expect(allLetters).toHaveAttribute("aria-pressed", "true");
+  await expect(staffToLetter).toHaveAttribute("aria-pressed", "true");
   await page.getByRole("button", { name: "Flashcards", exact: false }).first().click();
-  await expect(allLetters).toHaveAttribute("aria-pressed", "true");
+  await expect(staffToLetter).toHaveAttribute("aria-pressed", "true");
   await types.scrollIntoViewIfNeeded();
   await page.screenshot({ path: `screenshots/layout-review/${info.project.name}-flashcards-setup.png` });
 });
@@ -55,8 +54,9 @@ test("flashcards use the selected question direction", async ({ page }, info) =>
 });
 
 test("a missed note appears in parent progress and opens focused setup", async ({ page }, info) => {
-  await openWithSettings(page, { mode: "choice", questionTypes: ["guided"], clef: "treble", notes: ["C4"], choiceCount: 2 });
+  await openWithSettings(page, { mode: "choice", questionTypes: ["letters"], clef: "treble", notes: ["C4"] });
   await page.getByRole("button", { name: "Play", exact: true }).click();
+  await expect(page.locator(".answer-choice")).toHaveCount(7);
   await page.locator("button.answer-choice").filter({ hasNotText: "C" }).first().click();
   await page.getByRole("button", { name: "Progress", exact: true }).click();
   const progress = page.getByRole("dialog", { name: "Practice progress" });
@@ -73,7 +73,7 @@ test("a missed note appears in parent progress and opens focused setup", async (
 });
 
 test("repeated wrong letter answers do not reveal or force the correct answer", async ({ page }) => {
-  await openWithSettings(page, { mode: "choice", questionTypes: ["guided"], clef: "treble", notes: ["C4"], choiceCount: 2 });
+  await openWithSettings(page, { mode: "choice", questionTypes: ["letters"], clef: "treble", notes: ["C4"] });
   await page.getByRole("button", { name: "Play", exact: true }).click();
   const wrong = page.locator("button.answer-choice").filter({ hasNotText: "C" }).first();
   await wrong.click();
@@ -82,7 +82,7 @@ test("repeated wrong letter answers do not reveal or force the correct answer", 
   const correct = page.getByRole("button", { name: "C", exact: true });
   await expect(correct).toBeEnabled();
   await expect(correct).toHaveClass(/btn-primary/);
-  await expect(page.locator(".practice-feedback")).toHaveText("Not quite. Try again.");
+  await expect(page.locator(".practice-feedback")).toHaveText("Try once more.");
   await correct.click();
   await expect(page.locator(".practice-feedback")).toHaveText("C is correct.");
 });

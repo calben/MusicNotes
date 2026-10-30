@@ -59,7 +59,7 @@ export default function Progress({ onPractice, onOpenChange }) {
       <dialog ref={dialog} className="setup-panel parent-progress" aria-labelledby="progress-title" onClose={() => onOpenChange(false)}>
         <div className="drawer-heading">
           <h2 id="progress-title">Practice progress</h2>
-          <button type="button" className="btn btn-ghost close-drawer" aria-label="Close progress" onClick={() => dialog.current?.close()}>×</button>
+          <button type="button" className="btn btn-ghost close-drawer" autoFocus aria-label="Close progress" onClick={() => dialog.current?.close()}>×</button>
         </div>
         <p>First try means the answer was correct before any mistakes. Progress is saved on this device.</p>
         {entries.length === 0 ? (

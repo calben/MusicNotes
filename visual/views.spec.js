@@ -5,8 +5,8 @@ import path from "node:path";
 import { DEFAULT_SETTINGS } from "../src/music.js";
 
 const defaults = {
-  mode: "guided", clef: "treble", notes: ["C4"], noCrossingHands: true,
-  choiceCount: 5, roundLength: 0,
+  mode: "choice", questionTypes: ["letters"], clef: "treble", notes: ["C4"],
+  noCrossingHands: true, roundLength: 0,
 };
 const slug = (value) => value.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
 const browserErrors = new WeakMap();
@@ -117,7 +117,7 @@ test("setup and every configuration control", async ({ page }, info) => {
   for (const variant of ["primary", "outline", "ghost"]) {
     await buttonStates(page, info, `dialog .btn-${variant}`, `setup-${variant}`);
   }
-  for (const label of ["All letters", "Piano keys", "Keyboard to letter", "Flashcards"]) {
+  for (const label of ["Staff to letter", "Piano keys", "Keyboard to letter", "Flashcards"]) {
     await dialog.getByRole("button", { name: label, exact: false }).first().click();
     await page.locator(".mode-fieldset").scrollIntoViewIfNeeded();
     await capture(page, info, `setup-${label}`);
@@ -125,7 +125,7 @@ test("setup and every configuration control", async ({ page }, info) => {
       await capture(page, info, `options-${label}`, page.locator(".practice-options"));
     }
   }
-  await dialog.getByRole("button", { name: "Guided letters", exact: false }).click();
+  await dialog.getByRole("button", { name: "Staff to letter", exact: false }).click();
   await page.getByRole("checkbox", { name: "No crossing hands", exact: false }).uncheck();
   await capture(page, info, "no-crossing-off", page.locator(".clef-fieldset + .toggle-option"));
   for (const name of ["Starter", "Treble staff", "Bass staff"]) {
@@ -138,17 +138,33 @@ test("setup and every configuration control", async ({ page }, info) => {
   await capture(page, info, "disabled-start", dialog.getByRole("button", { name: "Start practice" }));
 });
 
-test("guided choices and feedback", async ({ page }, info) => {
-  for (const choiceCount of [2, 3, 4, 5]) {
-    await open(page, { choiceCount });
-    await capture(page, info, `start-${choiceCount}`);
-    await page.getByRole("button", { name: "Play", exact: true }).click();
-    await expect(page.locator(".answer-choice")).toHaveCount(choiceCount);
-    await expect(page.locator(".music-staff svg")).toBeVisible();
-    const staveBox = await page.locator(".vf-stave").boundingBox();
-    expect(staveBox.height, "staff stays enlarged after cropping whitespace").toBeGreaterThan(75);
-    await capture(page, info, `question-${choiceCount}`);
-  }
+test("start requires playable cards and symbol-only instruction ignores pitches", async ({ page }) => {
+  await open(page);
+  await page.getByRole("button", { name: "Practice setup" }).click();
+  const dialog = page.getByRole("dialog");
+  const start = dialog.getByRole("button", { name: "Start practice" });
+
+  await dialog.getByRole("button", { name: "Staff to Letter", exact: true }).click();
+  await expect(start).toBeDisabled();
+  await expect(dialog.getByRole("status")).toHaveText("Select a note question type or add a musical symbol.");
+
+  await dialog.locator(".symbol-category").first().locator(".category-actions button").first().click();
+  await expect(start).toBeEnabled();
+  await start.click();
+  await expect(page.locator(".practice-instructions")).toHaveText(
+    "Identify each musical symbol, then choose its name or value.",
+  );
+});
+
+test("staff-to-letter choices and feedback", async ({ page }, info) => {
+  await open(page);
+  await capture(page, info, "start");
+  await page.getByRole("button", { name: "Play", exact: true }).click();
+  await expect(page.locator(".answer-choice")).toHaveCount(7);
+  await expect(page.locator(".music-staff svg")).toBeVisible();
+  const staveBox = await page.locator(".vf-stave").boundingBox();
+  expect(staveBox.height, "staff stays enlarged after cropping whitespace").toBeGreaterThan(75);
+  await capture(page, info, "question");
   await buttonStates(page, info, ".answer-choice", "answer");
   await buttonStates(page, info, ".practice-play-note", "hear");
   const wrong = page.locator(".answer-choice").filter({ hasNotText: "C" }).first();
@@ -171,7 +187,7 @@ test("guided choices and feedback", async ({ page }, info) => {
 });
 
 test("staff to keyboard", async ({ page }, info) => {
-  await open(page, { mode: "keyboard" });
+  await open(page, { questionTypes: ["keyboard"] });
   await capture(page, info, "start");
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await capture(page, info, "question");
@@ -196,12 +212,12 @@ test("staff to keyboard", async ({ page }, info) => {
 });
 
 test("keyboard to letter", async ({ page }, info) => {
-  await open(page, { mode: "keyboard-letters" });
+  await open(page, { questionTypes: ["keyboard-letters"] });
   await capture(page, info, "start");
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await expect(page.locator(".music-staff")).toHaveCount(0);
   await expect(page.locator(".music-keyboard__key-label")).toHaveCount(0);
-  await expect(page.locator(".answer-choice")).toHaveCount(5);
+  await expect(page.locator(".answer-choice")).toHaveCount(7);
   await capture(page, info, "question");
   await capture(page, info, "target-key", page.locator(".music-keyboard__key-target"));
   const wrong = page.locator(".answer-choice").filter({ hasNotText: "C" }).first();
@@ -249,7 +265,7 @@ test("notation extremes and fitted keyboard", async ({ page }, info) => {
     }
   }
   for (const note of ["C2", "C6"]) {
-    await open(page, { mode: "keyboard", notes: [note] });
+    await open(page, { questionTypes: ["keyboard"], notes: [note] });
     await page.getByRole("button", { name: "Play", exact: true }).click();
     await expect(page.locator(".ReactPiano__Key--natural")).toHaveCount(10);
     await expect(page.getByRole("button", { name: /Higher keys|Lower keys/ })).toHaveCount(0);
@@ -273,7 +289,7 @@ test("actual defaults and enlarged view", async ({ page }, info) => {
 });
 
 test("same piano key works across consecutive questions", async ({ page }, info) => {
-  await open(page, { mode: "keyboard", roundLength: 5 });
+  await open(page, { questionTypes: ["keyboard"], roundLength: 5 });
   await page.getByRole("button", { name: "Play", exact: true }).click();
   await freeze(page);
   for (let question = 0; question < 5; question++) {

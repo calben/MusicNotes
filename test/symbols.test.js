@@ -42,7 +42,8 @@ test("rhythm symbols report their duration in quarter-note beats in 4/4", () => 
     assert.equal(symbolAnswer(card), expected[card.symbol.id]);
     assert.equal(isSymbolAnswerCorrect(card, expected[card.symbol.id]), true);
     assert.equal(isSymbolAnswerCorrect(card, "wrong"), false);
-    assert.equal(symbolAnswerLabel(expected[card.symbol.id], "symbol-beats"), `${expected[card.symbol.id]} ${expected[card.symbol.id] === 1 ? "beat" : "beats"}`);
+    const beats = expected[card.symbol.id];
+    assert.equal(symbolAnswerLabel(beats, "symbol-beats"), `${beats === 0.5 ? "half" : beats} ${beats === 0.5 || beats === 1 ? "beat" : "beats"}`);
   }
   assert.equal(SYMBOLS.find(({ id }) => id === "paired-eighth-notes").beats, 1);
 });
@@ -72,4 +73,5 @@ test("beat answer choices stay numeric and include the correct value", () => {
   assert.equal(new Set(choices).size, choices.length);
   assert.ok(choices.includes(0.5));
   assert.ok(choices.every((value) => typeof value === "number"));
+  assert.equal(symbolAnswerLabel(0.5, "symbol-beats"), "half beat");
 });

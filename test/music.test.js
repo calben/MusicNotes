@@ -34,7 +34,7 @@ test("every pitch fits a C-to-E keyboard with C, D, E in both octaves", () => {
 test("default settings select choice practice and retain the starter notes", () => {
   assert.equal(DEFAULT_SETTINGS.mode, "choice");
   assert.equal(DEFAULT_SETTINGS.roundLength, 5);
-  assert.equal(DEFAULT_SETTINGS.choiceCount, 2);
+  assert.equal("choiceCount" in DEFAULT_SETTINGS, false);
   assert.equal("voice" in DEFAULT_SETTINGS, false);
   assert.equal("autoVoiceDirections" in DEFAULT_SETTINGS, false);
   assert.equal("autoVoiceDirections" in normalizeSettings({ autoVoiceDirections: true }), false);
@@ -80,9 +80,11 @@ test("question selections normalize, preserve valid choices, and migrate old sav
       .questionTypes,
     ["letters"],
   );
+  assert.deepEqual(normalizeSettings({ questionTypes: ["guided", "letters"] }).questionTypes, ["letters"]);
+  assert.equal("choiceCount" in normalizeSettings({ choiceCount: 5 }), false);
   assert.deepEqual(
     normalizeSettings({ questionTypes: [] }).questionTypes,
-    [...DEFAULT_QUESTION_TYPES],
+    [],
   );
   assert.deepEqual(
     migrateSettings({ clef: "bass", notes: ["C3"], mode: "mixed", mixedQuestionTypes: ["letters", "keyboard"] })
@@ -93,6 +95,7 @@ test("question selections normalize, preserve valid choices, and migrate old sav
   assert.deepEqual(timedLegacy.questionTypes, ["keyboard"]);
   assert.equal("timed" in timedLegacy, false);
   assert.deepEqual(migrateSettings({ mode: "keyboard", mixedQuestionTypes: ["guided", "letters"] }).questionTypes, ["keyboard"]);
+  assert.deepEqual(migrateSettings({ questionTypes: ["guided", "letters", "keyboard"] }).questionTypes, ["letters", "keyboard"]);
   assert.equal(timedLegacy.mode, "choice");
   assert.equal(migrateSettings({ mode: "flashcards" }).mode, "flashcards");
 });

@@ -45,7 +45,7 @@ test("mistakes count one attempted question and retain first-try accuracy", () =
   assert.equal(wrong.attemptedQuestions, 1);
   assert.equal(wrong.wrongCount, 2);
   assert.equal(wrong.selectedAnswer, "F");
-  assert.equal(wrong.feedback, "Not quite. Try again.");
+  assert.equal(wrong.feedback, "Try once more.");
   const correct = answer(wrong, "C");
   assert.equal(correct.firstTryCorrect, 0);
   assert.equal(correct.attemptedQuestions, 1);
@@ -156,7 +156,7 @@ test("a missed question returns after two other questions and is recorded once",
   assert.equal(corrected.round.length, 5);
   assert.equal(corrected.round[3].note.id, "C4");
   assert.equal(corrected.round[3].review, true);
-  assert.deepEqual(corrected.outcomes, [{ noteId: "C4", mode: "guided", firstTry: false }]);
+  assert.deepEqual(corrected.outcomes, [{ noteId: "C4", mode: "letters", firstTry: false }]);
 });
 
 test("a miss at the end gets a gap using earlier notes when possible", () => {

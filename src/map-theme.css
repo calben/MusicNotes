@@ -20,22 +20,41 @@
 .practice-panel::after {
   content: "";
   position: absolute;
-  right: 18px;
-  bottom: calc(100% - clamp(16px, calc(5.47vw - 26px), 30px));
-  width: clamp(160px, 21vw, 220px);
-  aspect-ratio: 3 / 2;
-  background: var(--dragon-image) no-repeat right bottom / contain;
+  --dragon-size: clamp(160px, 21vw, 220px);
+  width: var(--dragon-size);
+  aspect-ratio: 1;
+  /* The perch sits near 80% x / 40% y in the square artwork. */
+  right: 0;
+  top: calc(var(--dragon-size) * -0.4);
+  background: var(--dragon-image) no-repeat center / 100% 100%;
   pointer-events: none;
   z-index: 2;
 }
 
-.practice-panel.dragon-3::after,
-.practice-panel.dragon-5::after {
-  bottom: calc(100% - clamp(11px, calc(5.08vw - 28px), 24px));
+.session-topline,
+.progress-track {
+  position: relative;
+  z-index: 3;
 }
 
-.practice-panel.dragon-4::after {
-  bottom: calc(100% - clamp(17px, calc(5.08vw - 22px), 30px));
+.session-topline {
+  padding-right: clamp(68px, 10vw, 100px);
+}
+
+.practice-progress__count {
+  margin-right: clamp(32px, 4vw, 42px);
+}
+
+@media (min-width: 651px) {
+  .practice-panel {
+    width: min(calc(100% - clamp(36px, 6vw, 52px)), 900px);
+  }
+}
+
+@media (max-width: 650px) {
+  .practice-panel::after {
+    --dragon-size: clamp(120px, 30vw, 180px);
+  }
 }
 
 .brand {

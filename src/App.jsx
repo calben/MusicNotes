@@ -2,16 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Flashcards from "./Flashcards";
 import PracticeSession from "./PracticeSession";
 import Progress from "./Progress.jsx";
-import dragon1 from "./assets/map-dragon-ink.png";
-import dragon2 from "./assets/map-dragon-ink-2.png";
-import dragon3 from "./assets/map-dragon-ink-3.png";
-import dragon4 from "./assets/map-dragon-ink-4.png";
-import dragon5 from "./assets/map-dragon-ink-5.png";
+import musicDragonLogo from "./assets/music-dragon-logo.png";
+import dragon1 from "./assets/corner-dragon-1.png";
+import dragon2 from "./assets/corner-dragon-2.png";
+import dragon3 from "./assets/corner-dragon-3.png";
+import dragon4 from "./assets/corner-dragon-4.png";
 import {
-  CHOICE_COUNTS,
   DEFAULT_SETTINGS,
   QUESTION_TYPES,
-  isChoiceMode,
   migrateSettings,
   NOTES,
   NOTE_PRESETS,
@@ -25,7 +23,7 @@ import "./App.css";
 import "./map-theme.css";
 
 const STORAGE_KEY = "music-notes-settings-v1";
-const DRAGONS = [dragon1, dragon2, dragon3, dragon4, dragon5];
+const DRAGONS = [dragon1, dragon2, dragon3, dragon4];
 const DRAGON_COUNT = DRAGONS.length;
 const CLEFS = [
   { id: "treble", name: "Treble", hint: "Higher notes" },
@@ -34,10 +32,9 @@ const CLEFS = [
 ];
 const octaves = [2, 3, 4, 5, 6];
 const QUESTION_TYPE_LABELS = {
-  guided: "Guided letters",
-  letters: "All letters",
-  keyboard: "Piano keys",
-  "keyboard-letters": "Keyboard to letter",
+  letters: "Staff to Letter",
+  keyboard: "Piano Keys",
+  "keyboard-letters": "Keyboard to Letter",
 };
 
 function readSettings() {
@@ -62,6 +59,9 @@ export default function App() {
   const [sessionKey, setSessionKey] = useState(0);
   const setupDialog = useRef(null);
   const noteIds = useMemo(() => new Set(draft.notes), [draft.notes]);
+  const hasNoteCards = draft.notes.length > 0 && draft.questionTypes.length > 0;
+  const hasSymbolCards = (draft.symbolIds?.length ?? 0) > 0;
+  const canStartPractice = hasNoteCards || hasSymbolCards;
   const chooseAnotherDragon = useCallback(() => {
     const offset = 1 + Math.floor(Math.random() * (DRAGON_COUNT - 1));
     setDragonIndex((current) => ((current - 1 + offset) % DRAGON_COUNT) + 1);
@@ -84,7 +84,6 @@ export default function App() {
   function toggleQuestionType(type) {
     setDraft((current) => {
       const selected = current.questionTypes.includes(type);
-      if (selected && current.questionTypes.length === 1) return current;
       return {
         ...current,
         questionTypes: selected
@@ -143,7 +142,7 @@ export default function App() {
     }
   }
   function startPractice() {
-    if (!draft.notes.length && !draft.symbolIds?.length) return;
+    if (!canStartPractice) return;
     const safe = normalizeSettings(draft);
     if (safe.mode === "flashcards") chooseAnotherDragon();
     setSettings(safe);
@@ -190,9 +189,7 @@ export default function App() {
     <main className="app-shell">
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Music Notes home">
-          <span className="brand-mark" aria-hidden="true">
-            ♫
-          </span>
+          <img className="brand-logo" src={musicDragonLogo} alt="" />
           <span>
             music<span className="brand-light">notes</span>
           </span>
@@ -269,13 +266,6 @@ export default function App() {
                 </button>
               ))}
             </div>
-            {draft.mode === "flashcards" &&
-              draft.questionTypes.includes("guided") &&
-              draft.questionTypes.includes("letters") && (
-                <small className="question-type-hint">
-                  Guided and All letters use the same staff-to-letter card in Flashcards.
-                </small>
-              )}
           </fieldset>
           <fieldset className="option-fieldset symbol-selection">
             <legend>Musical symbols <span className="pitch-count">{draft.symbolIds?.length ?? 0} selected</span></legend>
@@ -291,7 +281,7 @@ export default function App() {
                     <span>{category.label}</span>
                     <span className="category-count">{selectedCount}/{categorySymbols.length}</span>
                   </button>
-                  <div className="category-actions" aria-label={`${category.label} selection`}>
+                  <div className="category-actions" role="group" aria-label={`${category.label} selection`}>
                     <button type="button" className="btn btn-outline" aria-label={`Select all ${category.label}`} onClick={() => setCategorySymbols(category.id, true)} disabled={selectedCount === categorySymbols.length}>Select all</button>
                     <button type="button" className="btn btn-outline" aria-label={`Deselect all ${category.label}`} onClick={() => setCategorySymbols(category.id, false)} disabled={selectedCount === 0}>Deselect all</button>
                   </div>
@@ -312,26 +302,6 @@ export default function App() {
           </fieldset>
           {draft.mode === "choice" && (
             <div className="practice-options">
-              {isChoiceMode(draft.mode) && (
-                <fieldset className="option-fieldset">
-                  <legend>Answer choices</legend>
-                  <div className="segmented-options">
-                    {CHOICE_COUNTS.map((choiceCount) => (
-                      <button
-                        type="button"
-                        key={choiceCount}
-                        aria-pressed={draft.choiceCount === choiceCount}
-                        className={`btn ${draft.choiceCount === choiceCount ? "btn-primary" : "btn-outline"}`}
-                        onClick={() =>
-                          setDraft((current) => ({ ...current, choiceCount }))
-                        }
-                      >
-                        {choiceCount} choices
-                      </button>
-                    ))}
-                  </div>
-                </fieldset>
-              )}
               <fieldset className="option-fieldset">
                 <legend>Round length</legend>
                 <div className="segmented-options">
@@ -392,7 +362,7 @@ export default function App() {
               <span className="pitch-count">{draft.notes.length} selected</span>
             </div>
           </div>
-          <div className="preset-row" aria-label="Pitch presets">
+          <div className="preset-row" role="group" aria-label="Pitch presets">
             {NOTE_PRESETS.map(({ label, notes }) => (
               <button
                 key={label}
@@ -420,7 +390,7 @@ export default function App() {
               Clear
             </button>
           </div>
-          <div className="pitch-groups" aria-label="Select pitches">
+          <div className="pitch-groups" role="group" aria-label="Select pitches">
             {octaves.map((octave) => {
               const octaveNotes = NOTES.filter((note) => note.octave === octave);
               const expanded = expandedCategories.has(`octave-${octave}`);
@@ -432,7 +402,7 @@ export default function App() {
                     <span>Octave {octave}</span>
                     <span className="category-count">{selectedCount}/{octaveNotes.length}</span>
                   </button>
-                  <div className="category-actions" aria-label={`Octave ${octave} pitch selection`}>
+                  <div className="category-actions" role="group" aria-label={`Octave ${octave} pitch selection`}>
                     <button type="button" className="btn btn-outline" aria-label={`Select all pitches in octave ${octave}`} onClick={() => setOctaveNotes(octave, true)} disabled={selectedCount === octaveNotes.length}>Select all</button>
                     <button type="button" className="btn btn-outline" aria-label={`Deselect all pitches in octave ${octave}`} onClick={() => setOctaveNotes(octave, false)} disabled={selectedCount === 0}>Deselect all</button>
                   </div>
@@ -457,16 +427,18 @@ export default function App() {
               </section>;
             })}
           </div>
-          {!draft.notes.length && !draft.symbolIds?.length && (
+          {!canStartPractice && (
             <p className="form-hint" role="status">
-              Select at least one pitch to begin.
+              {draft.notes.length > 0 && draft.questionTypes.length === 0
+                ? "Select a note question type or add a musical symbol."
+                : "Select a pitch or musical symbol to begin."}
             </p>
           )}
           <button
             type="button"
             className="btn btn-primary btn-lg start-button"
             onClick={startPractice}
-            disabled={!draft.notes.length && !draft.symbolIds?.length}
+            disabled={!canStartPractice}
           >
             Start practice <span aria-hidden="true">→</span>
           </button>

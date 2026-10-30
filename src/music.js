@@ -4,15 +4,13 @@ import { normalizeSymbolIds } from "./symbols.js";
 const PITCH_LETTERS = ["C", "D", "E", "F", "G", "A", "B"];
 const SEMITONES = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 export const LETTERS = Object.freeze(["A", "B", "C", "D", "E", "F", "G"]);
-export const CHOICE_COUNTS = Object.freeze([2, 3, 4, 5]);
 export const ROUND_LENGTHS = Object.freeze([5, 10, 0]);
 export const QUESTION_TYPES = Object.freeze([
-  "guided",
   "letters",
   "keyboard",
   "keyboard-letters",
 ]);
-export const DEFAULT_QUESTION_TYPES = Object.freeze(["guided"]);
+export const DEFAULT_QUESTION_TYPES = Object.freeze(["letters"]);
 const LEGACY_MIXED_DEFAULT_TYPES = Object.freeze([
   "guided",
   "keyboard",
@@ -64,23 +62,17 @@ export function keyboardRangeForNote(note) {
 }
 
 export const isChoiceMode = (mode) =>
-  mode === "choice" || mode === "guided" || mode === "keyboard-letters";
+  mode === "choice" || mode === "guided" || mode === "letters" || mode === "keyboard-letters";
 export const PRACTICE_FORMATS = [
   { id: "choice", label: "Choice", description: "Answer each question." },
   { id: "flashcards", label: "Flashcards", description: "Reveal each answer and check yourself." },
 ];
 export const PRACTICE_MODES = [
   {
-    id: "guided",
-    label: "Guided letters",
-    description: "Start with a small set of choices.",
-    prompt: "Tap the letter that names this note.",
-  },
-  {
     id: "letters",
-    label: "All letters",
-    description: "Name each note from A to G.",
-    prompt: "Choose the note name.",
+    label: "Staff to letter",
+    description: "Name the staff note from A to G.",
+    prompt: "Tap the letter that names this note.",
   },
   {
     id: "keyboard",
@@ -104,7 +96,6 @@ export const DEFAULT_SETTINGS = Object.freeze({
   questionTypes: DEFAULT_QUESTION_TYPES,
   symbolIds: Object.freeze([]),
   roundLength: 5,
-  choiceCount: 2,
 });
 
 export function normalizeSettings(value) {
@@ -133,16 +124,14 @@ export function normalizeSettings(value) {
     roundLength: ROUND_LENGTHS.includes(value?.roundLength)
       ? value.roundLength
       : DEFAULT_SETTINGS.roundLength,
-    choiceCount: CHOICE_COUNTS.includes(value?.choiceCount)
-      ? value.choiceCount
-      : DEFAULT_SETTINGS.choiceCount,
   };
 }
 
 export function normalizeQuestionTypes(value) {
   if (!Array.isArray(value)) return [...DEFAULT_QUESTION_TYPES];
-  const selected = QUESTION_TYPES.filter((type) => value.includes(type));
-  return selected.length ? selected : [...DEFAULT_QUESTION_TYPES];
+  const legacyTypes = value.map((type) => type === "guided" ? "letters" : type);
+  const selected = QUESTION_TYPES.filter((type) => legacyTypes.includes(type));
+  return selected.length || value.length === 0 ? selected : [...DEFAULT_QUESTION_TYPES];
 }
 
 export const NOTE_PRESETS = [

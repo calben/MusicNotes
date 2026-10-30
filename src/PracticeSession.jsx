@@ -105,9 +105,16 @@ export default function PracticeSession({ settings, paused = false, onStart }) {
     :
     PRACTICE_MODES.find(({ id }) => id === quizMode)?.prompt ??
     "Follow the prompt and answer the question.";
+  const hasNoteCards = cards.some((item) => item.kind !== "symbol");
+  const hasSymbolCards = cards.some((item) => item.kind === "symbol");
+  const startInstruction = hasNoteCards && hasSymbolCards
+    ? "Identify each note or musical symbol, then answer the question."
+    : hasSymbolCards
+      ? "Identify each musical symbol, then choose its name or value."
+      : "Read each staff note or piano key, then answer the question.";
   const choices = useMemo(
-    () => answerChoices(card, config.choiceCount, cards),
-    [card, index, config.choiceCount, cards],
+    () => answerChoices(card),
+    [card, index],
   );
   const choiceMode = isChoiceMode(quizMode);
   const live = phase === "question" || phase === "correct";
@@ -135,7 +142,7 @@ export default function PracticeSession({ settings, paused = false, onStart }) {
     if (phase !== "correct" || paused) return;
     const timer = window.setTimeout(
       () => dispatch({ type: "next" }),
-      quizMode === "guided" ? 1400 : 600,
+      600,
     );
     return () => window.clearTimeout(timer);
   }, [phase, paused, quizMode]);
@@ -223,7 +230,7 @@ export default function PracticeSession({ settings, paused = false, onStart }) {
     return (
       <div className={`practice-session mode-${config.mode}`}>
         <div className="practice-start-screen">
-          <p className="practice-instructions">{prompt}</p>
+          <p className="practice-instructions">{startInstruction}</p>
           <button
             type="button"
             className="btn btn-primary btn-lg practice-start"
@@ -331,9 +338,9 @@ export default function PracticeSession({ settings, paused = false, onStart }) {
           )}
           </div>
           <div className="practice-answer-slot">
-          {(choiceMode || quizMode === "letters" || card.kind === "symbol") && (
+          {(choiceMode || card.kind === "symbol") && (
             <LetterChoices
-              letters={choiceMode || card.kind === "symbol" ? choices : LETTERS}
+              letters={choices}
             state={{ ...state, mode: quizMode }}
               paused={paused}
               onAnswer={handleAnswer}

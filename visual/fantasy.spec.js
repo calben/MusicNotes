@@ -30,7 +30,7 @@ test("tablet map theme on start and completion", async ({ page }, info) => {
   expect((await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze()).violations).toEqual([]);
 });
 
-test("square noteheads preserve pitch positions in both clefs", async ({ page }) => {
+test("standard quarter noteheads preserve pitch positions in both clefs", async ({ page }, info) => {
   for (const clef of ["treble", "bass"]) {
     const positions = [];
     for (const note of ["C4", "D4", "E4"]) {
@@ -48,8 +48,12 @@ test("square noteheads preserve pitch positions in both clefs", async ({ page })
       }));
       const line = await page.locator(".vf-stave path").last().getAttribute("d");
       const bottomLineY = Number(line.match(/^M[\d.]+ ([\d.]+)/)[1]);
-      expect(noteData.glyph).toBe(0xe0b9);
+      expect(noteData.glyph).toBe(0xe0a4);
       positions.push(noteData.y - bottomLineY);
+      if (note === "C4") {
+        await mkdir("screenshots/notehead-review", { recursive: true });
+        await page.screenshot({ path: `screenshots/notehead-review/${info.project.name}-${clef}.png` });
+      }
     }
     expect(positions[1] - positions[0]).toBeCloseTo(-5, 3);
     expect(positions[2] - positions[1]).toBeCloseTo(-5, 3);
